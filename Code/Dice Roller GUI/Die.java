@@ -7,7 +7,7 @@ public class Die {
 	double xvel; double yvel;
 	double gravity = 2;
 	double bounciness; // 1 = no energy lost, .5 = half energy lost, 0 = all energy lost
-	double tempXVel; double tempYVel;
+	double tempXVel; double tempYVel; double tempGrav;
 	boolean xHit = false; boolean yHit = false;
 	boolean hasGravity;
 	Random gen = new Random();
@@ -19,7 +19,7 @@ public class Die {
 	Color dieColor;
 	Dot[] dots = new Dot[6];
 
-	public Die (int s, int xloc, int yloc, double xvell, double yvell, int dimensions, Color c, double b, SoundPlayer snd, String[] fx, double HST) {
+	public Die (int s, double xloc, double yloc, double xvell, double yvell, int dimensions, Color c, double b, SoundPlayer snd, String[] fx, double HST) {
 		if (s>3) 
 			sides = s;
 		else 
@@ -119,16 +119,19 @@ public class Die {
 		}
 	}
 
-	public void freeze(double xt, double yt) {
+	public void freeze(double xt, double yt, double tg) {
 		xvel = 0;
 		yvel = 0;
+		gravity = 0;
 		tempXVel = xt;
 		tempYVel = yt;
+		tempGrav = tg;
 	}
 
 	public void unfreeze() {
 		xvel = tempXVel;
 		yvel = tempYVel;
+		gravity = tempGrav;
 	}
 
 	public void jump(double jumpSide, double jumpUp) {

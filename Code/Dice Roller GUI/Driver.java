@@ -2,7 +2,7 @@ import java.awt.*;
 import javax.swing.*;
 public class Driver {
 	public static void main(String[] args) {
-		Dimension size = new Dimension(800, 600);
+		Dimension size = new Dimension(2560, 1440);
 		JFrame frame = new JFrame("tRoller");
 		GraphicsPanel panel = new GraphicsPanel(size);
 
@@ -13,7 +13,7 @@ public class Driver {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		final int PHYSICS_RATE = 1000/1000;
-		final int FRAMERATE = 1000/60;
+		final int FRAMERATE = 1000/144;
 
 		long dt; long lastTimeMoved = System.currentTimeMillis();
 		long frameTime; long lastFrameStart = System.currentTimeMillis();

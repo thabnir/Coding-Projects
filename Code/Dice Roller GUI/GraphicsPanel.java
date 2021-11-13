@@ -5,17 +5,17 @@ import javax.swing.*;
 
 public class GraphicsPanel extends JPanel implements KeyListener{
 
-	final int NUM_DICE = 5; final int MAX_VEL = 7;
-	final int MIN_SIZE = 10; final int MAX_VARIANCE = 170;
+	final int NUM_DICE = 130; final int MAX_VEL = 2;
+	final int MIN_SIZE = 5; final int MAX_VARIANCE = 200;
 	boolean hasGravity = false;
-	double gravity = .5;
-	double bounciness = .90;
-	boolean hasHitSound = true;
+	double gravity = 1;
+	double bounciness = .96;
+	boolean hasHitSound = false;
+	boolean hasRollSound = false;
 	double hitSoundThresh = MAX_VEL/5;
 	double hitSoundThreshGravity = hitSoundThresh + 10;
-	boolean hasRollSound = true;
-	boolean hasDropShadow = false;
-	boolean hasTransparentDie = false;
+	boolean hasDropShadow = true;
+	boolean hasTransparentDie = true;
 	
 	String uno = "Press";
 	String dos = "*Space*";
@@ -45,7 +45,8 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 				alpha = (int)(Math.random()*196)+60; //level of transparency, 255 is completely opaque
 			}
 			Color randColor = new Color(red,green,blue,alpha);
-			dice[i] = new Die(6, 100, 100, Math.random()*2*MAX_VEL-MAX_VEL, Math.random()*2*MAX_VEL-MAX_VEL, MIN_SIZE+gen.nextInt(MAX_VARIANCE), randColor, bounciness, sound, hitsfx, hitSoundThresh);
+			int dieSize = MIN_SIZE+gen.nextInt(MAX_VARIANCE);
+			dice[i] = new Die(6, size.getWidth()/2 - (double)dieSize/2, size.getHeight()/2 - (double)dieSize/2, Math.random()*2*MAX_VEL-MAX_VEL, Math.random()*2*MAX_VEL-MAX_VEL, dieSize, randColor, bounciness, sound, hitsfx, hitSoundThresh);
 			//(sides, x,     y, x velocity,     y velocity,       size)
 		}
 	}
@@ -89,6 +90,7 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 			for (Die die : dice) {
 				die.setYVel( -die.getYVel() ); //reverse
 				die.setXVel( -die.getXVel() ); //reverse (take it back now y'all)
+				gravity = -gravity;
 			}
 		}
 		
@@ -109,16 +111,29 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 			for (Die die : dice)
 				die.jump(0, 30);
 		}
-		if (e.getKeyCode() == 83) {
+		if (e.getKeyCode() == 83) //s to jump down
+		{
 			for (Die die : dice)
 				die.jump(0, -30);
 		}
+		if (e.getKeyCode() == 40) //down arrow for higher gravity
+		{
+			gravity += .3;
+		}
+		if (e.getKeyCode() == 38) //up arrow for lower gravity
+		{
+			gravity -= .3;
+		}
 		
+		if (e.getKeyCode() == 71) //g to toggle gravity
+		{
+			hasGravity = !hasGravity;
+		}
 		if (e.getKeyCode() == 70 && !isFrozen) //f to freeze and unfreeze
 		{
 			isFrozen=true;
 			for (Die die : dice)
-				die.freeze(die.getXVel(), die.getYVel()); //f to freeze,
+				die.freeze(die.getXVel(), die.getYVel(), gravity); //f to freeze,
 		} else if (e.getKeyCode() == 70 && isFrozen) {
 			isFrozen=false;
 			for (Die die : dice)
