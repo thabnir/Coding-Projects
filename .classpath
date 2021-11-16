@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="Code/Dice Roller GUI"/>
+	<classpathentry kind="src" path="Code/ElvenTen"/>
+	<classpathentry kind="src" path="Code/GUI Day 1"/>
+	<classpathentry kind="src" path="Code/GUI Day 2"/>
+	<classpathentry kind="src" path="Code/GUI Day 3"/>
+	<classpathentry kind="output" path="Code/bin"/>
+</classpath>
