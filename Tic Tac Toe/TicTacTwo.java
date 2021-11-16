@@ -1,8 +1,8 @@
 import java.util.*;
+import java.awt.*;
 public class TicTacTwo {
-	public static void main(String[] args)
-			throws InterruptedException {
-		BoardLogic b = new BoardLogic(3); //paramater equals the dimensions of the board
+	public static void main(String[] args) {
+		BoardLogic b = new BoardLogic(3); // paramater equals the dimensions of the board
 		Scanner input = new Scanner(System.in);
 		int nextRow; int nextColumn;
 		boolean twoPlayer = true;
@@ -30,8 +30,10 @@ public class TicTacTwo {
 				input.next();
 			}
 		}
+
 		// todo: give it a gui. ideally clickable
 		// if clickable is too much, then can keep input on console, display board in graphics panel
+
 		// GAME LOOP
 		while (true) {
 			b.printBoardArray();
@@ -67,10 +69,11 @@ public class TicTacTwo {
 					System.out.println(b.getPlayerName() + " wins!");
 				else
 					System.out.println("Tie!");
-				//System.out.println("Streak: " +b.longestStreak + " | " +b.lastRow + ", " + b.lastCol);
+				// System.out.println("Streak: " +b.longestStreak + " | " +b.lastRow + ", " + b.lastCol);
 				return;
 			}
 			b.changeTurns();
 		}
+		
 	}
 }
