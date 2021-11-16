@@ -5,7 +5,7 @@ import javax.swing.*;
 
 public class GraphicsPanel extends JPanel implements KeyListener{
 
-	final int NUM_DICE = 130; final int MAX_VEL = 2;
+	final int NUM_DICE = 30; final int MAX_VEL = 20;
 	final int MIN_SIZE = 5; final int MAX_VARIANCE = 200;
 	boolean hasGravity = false;
 	double gravity = 1;
@@ -15,7 +15,7 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 	double hitSoundThresh = MAX_VEL/5;
 	double hitSoundThreshGravity = hitSoundThresh + 10;
 	boolean hasDropShadow = true;
-	boolean hasTransparentDie = true;
+	boolean hasTransparentDie = false;
 	
 	String uno = "Press";
 	String dos = "*Space*";
@@ -32,7 +32,7 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 
 	public GraphicsPanel(Dimension size) {
 		this.setPreferredSize(size);
-		this.setBackground(Color.pink);
+		this.setBackground(new Color(178, 167, 212));
 		this.setFocusable(true);
 		this.addKeyListener(this);
 
@@ -79,8 +79,8 @@ public class GraphicsPanel extends JPanel implements KeyListener{
 		if(e.getKeyCode()==32) //spacebar to roll
 		{
 			if (hasRollSound)
-				sound.play(hitsfx[0]);
-				//sound.play(rollsfx[gen.nextInt(rollsfx.length)]);
+				//sound.play(hitsfx[0]);
+				sound.play(rollsfx[gen.nextInt(rollsfx.length)]);
 			for (Die die : dice)
 				die.roll();
 		}

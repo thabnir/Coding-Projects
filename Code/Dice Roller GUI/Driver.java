@@ -2,7 +2,7 @@ import java.awt.*;
 import javax.swing.*;
 public class Driver {
 	public static void main(String[] args) {
-		Dimension size = new Dimension(2560, 1440);
+		Dimension size = new Dimension(1920, 1080);
 		JFrame frame = new JFrame("tRoller");
 		GraphicsPanel panel = new GraphicsPanel(size);
 
@@ -31,6 +31,9 @@ public class Driver {
 				panel.moveDice(dt, 30.0);
 				dt = System.currentTimeMillis() - lastTimeMoved;
 				lastTimeMoved = System.currentTimeMillis();
+				
+				//the tps and framerate parts are a little off
+				//plus ratio plus L plus noone cares about them anyway
 				/*
 				numTicks++;
 				if (System.currentTimeMillis() - lastTPSTime > STAT_UPDATE_TIME_MS) {

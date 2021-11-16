@@ -88,27 +88,27 @@ public class Die {
 			x = 0;
 			xvel = -1 * bounciness * xvel;
 			if (hasSound && Math.abs(xvel) > hitSoundThresh)
-				sound.play(sfx[0]);
-			//sound.play(sfx[gen.nextInt(sfx.length)]);
+				//sound.play(sfx[0]);
+				sound.play(sfx[gen.nextInt(sfx.length)]);
 		} else if (x + d > size.getWidth()) {
 			x = size.getWidth() - d;
 			xvel = -1 * bounciness * xvel;
 			if (hasSound && Math.abs(xvel) > hitSoundThresh)
-				sound.play(sfx[0]);
-			//sound.play(sfx[gen.nextInt(sfx.length)]);
+				//sound.play(sfx[0]);
+				sound.play(sfx[gen.nextInt(sfx.length)]);
 		}
 		if (y < 0) {
 			y = 0;
 			yvel = -1 * bounciness * yvel;
 			if (hasSound && Math.abs(yvel) > hitSoundThresh)
-				sound.play(sfx[0]);
-			//sound.play(sfx[gen.nextInt(sfx.length)]);
+				//sound.play(sfx[0]);
+				sound.play(sfx[gen.nextInt(sfx.length)]);
 		} else if (y + d > size.getHeight()) {
 			y = size.getHeight() - d;
 			yvel = -1 * bounciness * yvel;
 			if (hasSound && Math.abs(yvel) > hitSoundThresh)
-				sound.play(sfx[0]);
-			//sound.play(sfx[gen.nextInt(sfx.length)]);
+				//sound.play(sfx[0]);
+				sound.play(sfx[gen.nextInt(sfx.length)]);
 		}
 		if (hasGravity && gravity != 0)
 			yvel += gravity / constant * dt;
@@ -120,23 +120,16 @@ public class Die {
 	}
 
 	public void freeze(double xt, double yt, double tg) {
-		xvel = 0;
-		yvel = 0;
-		gravity = 0;
-		tempXVel = xt;
-		tempYVel = yt;
-		tempGrav = tg;
+		xvel = 0; yvel = 0; gravity = 0;
+		tempXVel = xt; tempYVel = yt; tempGrav = tg;
 	}
 
 	public void unfreeze() {
-		xvel = tempXVel;
-		yvel = tempYVel;
-		gravity = tempGrav;
+		xvel = tempXVel; yvel = tempYVel; gravity = tempGrav;
 	}
 
 	public void jump(double jumpSide, double jumpUp) {
-		yvel -= jumpUp;
-		xvel += jumpSide;
+		yvel -= jumpUp; xvel += jumpSide;
 	}
 
 	public int getNumSides() {return sides;} //(numberOfSides)
