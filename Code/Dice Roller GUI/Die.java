@@ -94,21 +94,21 @@ public class Die {
 			x = size.getWidth() - d;
 			xvel = -1 * bounciness * xvel;
 			if (hasSound && Math.abs(xvel) > hitSoundThresh)
-				sound.play(sfx[0]);
-			//sound.play(sfx[gen.nextInt(sfx.length)]);
+				//sound.play(sfx[0]);
+				sound.play(sfx[gen.nextInt(sfx.length)]);
 		}
 		if (y < 0) {
 			y = 0;
 			yvel = -1 * bounciness * yvel;
 			if (hasSound && Math.abs(yvel) > hitSoundThresh)
-				sound.play(sfx[0]);
-			//sound.play(sfx[gen.nextInt(sfx.length)]);
+				//sound.play(sfx[0]);
+				sound.play(sfx[gen.nextInt(sfx.length)]);
 		} else if (y + d > size.getHeight()) {
 			y = size.getHeight() - d;
 			yvel = -1 * bounciness * yvel;
 			if (hasSound && Math.abs(yvel) > hitSoundThresh)
-				sound.play(sfx[0]);
-			//sound.play(sfx[gen.nextInt(sfx.length)]);
+				//sound.play(sfx[0]);
+				sound.play(sfx[gen.nextInt(sfx.length)]);
 		}
 		if (hasGravity && gravity != 0)
 			yvel += gravity / constant * dt;

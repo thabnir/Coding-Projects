@@ -10,7 +10,7 @@ public class SoundPlayer implements LineListener {
 	int soundsPlaying;
 
 	public void play(String audioFilePath) {
-		File audioFile = new File("F:\\SoundEffects\\" +audioFilePath);
+		File audioFile = new File("C:\\SoundEffects\\" +audioFilePath);
 		if (soundsPlaying < maxSoundsPlaying) {
 			try {
 				AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
