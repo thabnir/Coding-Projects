@@ -15,7 +15,7 @@ import com.chess.engine.board.Tile;
 
 public class Knight extends Piece {
 
-	private final static int[] CANDIDATE_MOVE_COORDS = { -17, -15, -10, -6, 6, 10, 15, 17 };
+	private static final int[] CANDIDATE_MOVE_COORDS = { -17, -15, -10, -6, 6, 10, 15, 17 };
 
 	public Knight(final Alliance pieceAlliance, final int piecePosition) {
 		super(PieceType.KNIGHT, piecePosition, pieceAlliance);
@@ -27,30 +27,22 @@ public class Knight extends Piece {
 		final List<Move> legalMoves = new ArrayList<>();
 
 		for (final int currentCandidateOffset : CANDIDATE_MOVE_COORDS) {
-			final int candidateDestinationCoord = this.piecePosition + currentCandidateOffset;
-
-			if (!BoardUtils.isValidTileCoord(candidateDestinationCoord))
+			if (isFirstColumnExclusion(this.piecePosition, currentCandidateOffset)
+					|| isSecondColumnExclusion(this.piecePosition, currentCandidateOffset)
+					|| isSeventhColumnExclusion(this.piecePosition, currentCandidateOffset)
+					|| isEighthColumnExclusion(this.piecePosition, currentCandidateOffset)) {
 				continue;
-
+			}
+			final int candidateDestinationCoord = this.piecePosition + currentCandidateOffset;
 			if (BoardUtils.isValidTileCoord(candidateDestinationCoord)) {
-
-				if (isFirstColumnExclusion(this.piecePosition, currentCandidateOffset)
-						|| isSecondColumnExclusion(this.piecePosition, currentCandidateOffset)
-						|| isSeventhColumnExclusion(this.piecePosition, currentCandidateOffset)
-						|| isEighthColumnExclusion(this.piecePosition, currentCandidateOffset)) {
-					continue;
-				}
-
 				final Tile candidateDestinationTile = board.getTile(candidateDestinationCoord);
-
-				if (!candidateDestinationTile.isOccupied()) { // this is wrong
+				if (!candidateDestinationTile.isOccupied()) {
 					legalMoves.add(new MajorMove(board, this, candidateDestinationCoord)); // non-capture move
 				} else {
 					final Piece pieceAtDestination = candidateDestinationTile.getPiece();
 					final Alliance pieceAlliance = pieceAtDestination.getAlliance();
 					if (this.pieceAlliance != pieceAlliance) {
 						legalMoves.add(new AttackMove(board, this, candidateDestinationCoord, pieceAtDestination)); // capture
-																													// move
 					}
 				}
 			}

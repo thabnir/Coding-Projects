@@ -81,7 +81,6 @@ public abstract class Player {
 	}
 
 	public MoveTransition makeMove(final Move move) {
-
 		if (!isMoveLegal(move)) {
 			return new MoveTransition(this.board, move, MoveStatus.ILLEGAL_MOVE); // don't do anything, illegal
 		}
