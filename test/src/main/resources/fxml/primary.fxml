@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane id="AnchorPane" prefHeight="200" prefWidth="320" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="test.test.FXMLController">
+    <children>
+        <Button layoutX="107.0" layoutY="108.0" onAction="#btnClickAction" text="Suspicious" />
+        <Label fx:id="lblOut" layoutX="53.0" layoutY="32.0" minHeight="16" minWidth="69" prefHeight="52.0" prefWidth="215.0" />
+    </children>
+</AnchorPane>
