@@ -24,7 +24,7 @@ public class Pawn extends Piece {
 		final List<Move> legalMoves = new ArrayList<>();
 
 		for (final int currentCandidateOffset : CANDIDATE_MOVE_COORDS) {
-			final int candidateDestinationCoords = this.piecePosition
+			int candidateDestinationCoords = this.piecePosition
 					+ (this.getAlliance().getDirection() * currentCandidateOffset);
 
 			if (!BoardUtils.isValidTileCoord(candidateDestinationCoords)) {
