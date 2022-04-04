@@ -23,23 +23,15 @@ public class King extends Piece {
 
 	@Override
 	public Collection<Move> calculateLegalMoves(Board board) {
-
 		final List<Move> legalMoves = new ArrayList<>();
-
 		for (final int currentCandidateOffset : CANDIDATE_MOVE_COORDS) {
-			final int candidateDestinationCoord = this.piecePosition + currentCandidateOffset;
-
-			if (!BoardUtils.isValidTileCoord(candidateDestinationCoord))
-				continue;
-
 			if (isFirstColumnExclusion(this.piecePosition, currentCandidateOffset)
 					|| isEighthColumnExclusion(this.piecePosition, currentCandidateOffset)) {
 				continue;
 			}
-
+			final int candidateDestinationCoord = this.piecePosition + currentCandidateOffset;
 			if (BoardUtils.isValidTileCoord(candidateDestinationCoord)) {
 				final Tile candidateDestinationTile = board.getTile(candidateDestinationCoord);
-
 				if (!candidateDestinationTile.isOccupied()) {
 					legalMoves.add(new MajorMove(board, this, candidateDestinationCoord)); // non-capture move
 				} else {
@@ -51,9 +43,7 @@ public class King extends Piece {
 					}
 				}
 			}
-
 		}
-
 		return Collections.unmodifiableList(legalMoves);
 	}
 

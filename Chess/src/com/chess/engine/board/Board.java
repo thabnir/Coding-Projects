@@ -113,36 +113,47 @@ public class Board {
 		return createBoardFromFen(BoardUtils.startFen);
 
 		/*
-		 * Builder builder = new Builder(); // Black layout builder.setPiece(new
-		 * Rook(Alliance.BLACK, 0)); builder.setPiece(new Knight(Alliance.BLACK, 1));
-		 * builder.setPiece(new Bishop(Alliance.BLACK, 2)); builder.setPiece(new
-		 * Queen(Alliance.BLACK, 3)); builder.setPiece(new King(Alliance.BLACK, 4));
-		 * builder.setPiece(new Bishop(Alliance.BLACK, 5)); builder.setPiece(new
-		 * Knight(Alliance.BLACK, 6)); builder.setPiece(new Rook(Alliance.BLACK, 7));
-		 * builder.setPiece(new Pawn(Alliance.BLACK, 8)); builder.setPiece(new
-		 * Pawn(Alliance.BLACK, 9)); builder.setPiece(new Pawn(Alliance.BLACK, 10));
-		 * builder.setPiece(new Pawn(Alliance.BLACK, 11)); builder.setPiece(new
-		 * Pawn(Alliance.BLACK, 12)); builder.setPiece(new Pawn(Alliance.BLACK, 13));
-		 * builder.setPiece(new Pawn(Alliance.BLACK, 14)); builder.setPiece(new
-		 * Pawn(Alliance.BLACK, 15));
-		 * 
-		 * // White Layout
-		 * 
-		 * builder.setPiece(new Pawn(Alliance.WHITE, 48)); builder.setPiece(new
-		 * Pawn(Alliance.WHITE, 49)); builder.setPiece(new Pawn(Alliance.WHITE, 50));
-		 * builder.setPiece(new Pawn(Alliance.WHITE, 51)); builder.setPiece(new
-		 * Pawn(Alliance.WHITE, 52)); builder.setPiece(new Pawn(Alliance.WHITE, 53));
-		 * builder.setPiece(new Pawn(Alliance.WHITE, 54)); builder.setPiece(new
-		 * Pawn(Alliance.WHITE, 55)); builder.setPiece(new Rook(Alliance.WHITE, 56));
-		 * builder.setPiece(new Knight(Alliance.WHITE, 57)); builder.setPiece(new
-		 * Bishop(Alliance.WHITE, 58)); builder.setPiece(new Queen(Alliance.WHITE, 59));
-		 * builder.setPiece(new King(Alliance.WHITE, 60)); builder.setPiece(new
-		 * Bishop(Alliance.WHITE, 61)); builder.setPiece(new Knight(Alliance.WHITE,
-		 * 62)); builder.setPiece(new Rook(Alliance.WHITE, 63));
-		 * 
-		 * // White to move builder.setMoveMaker(Alliance.WHITE); return
-		 * builder.build();
-		 */
+		Builder builder = new Builder();
+		//Black layout
+		builder.setPiece(new Rook(Alliance.BLACK, 0));
+		builder.setPiece(new Knight(Alliance.BLACK, 1));
+		builder.setPiece(new Bishop(Alliance.BLACK, 2));
+		builder.setPiece(new Queen(Alliance.BLACK, 3));
+		builder.setPiece(new King(Alliance.BLACK, 4));
+		builder.setPiece(new Bishop(Alliance.BLACK, 5));
+		builder.setPiece(new Knight(Alliance.BLACK, 6));
+		builder.setPiece(new Rook(Alliance.BLACK, 7));
+		builder.setPiece(new Pawn(Alliance.BLACK, 8));
+		builder.setPiece(new Pawn(Alliance.BLACK, 9));
+		builder.setPiece(new Pawn(Alliance.BLACK, 10));
+		builder.setPiece(new Pawn(Alliance.BLACK, 11));
+		builder.setPiece(new Pawn(Alliance.BLACK, 12));
+		builder.setPiece(new Pawn(Alliance.BLACK, 13));
+		builder.setPiece(new Pawn(Alliance.BLACK, 14));
+		builder.setPiece(new Pawn(Alliance.BLACK, 15));
+
+		// White Layout
+		builder.setPiece(new Pawn(Alliance.WHITE, 48));
+		builder.setPiece(new Pawn(Alliance.WHITE, 49));
+		builder.setPiece(new Pawn(Alliance.WHITE, 50));
+		builder.setPiece(new Pawn(Alliance.WHITE, 51));
+		builder.setPiece(new Pawn(Alliance.WHITE, 52));
+		builder.setPiece(new Pawn(Alliance.WHITE, 53));
+		builder.setPiece(new Pawn(Alliance.WHITE, 54));
+		builder.setPiece(new Pawn(Alliance.WHITE, 55));
+		builder.setPiece(new Rook(Alliance.WHITE, 56));
+		builder.setPiece(new Knight(Alliance.WHITE, 57));
+		builder.setPiece(new Bishop(Alliance.WHITE, 58));
+		builder.setPiece(new Queen(Alliance.WHITE, 59));
+		builder.setPiece(new King(Alliance.WHITE, 60));
+		builder.setPiece(new Bishop(Alliance.WHITE, 61));
+		builder.setPiece(new Knight(Alliance.WHITE, 62));
+		builder.setPiece(new Rook(Alliance.WHITE, 63));
+
+		// White to move
+		builder.setMoveMaker(Alliance.WHITE);
+		return builder.build();
+		*/
 	}
 
 	public static Board createBoardFromFen(String fenString) {
@@ -165,43 +176,40 @@ public class Board {
 			if (symbol == ' ') {
 				System.out.println("Pieces set!");
 				break; // end piece-setting
-
 			} else if (Character.isDigit(symbol)) {
 				col += Character.getNumericValue(symbol); // skip n tiles forward
-
 			} else if (symbol == '/') {
 				col = 0;
 				row++;
-
 			} else {
 				switch (Character.toUpperCase(symbol)) {
-					case 'P':
-						builder.setPiece(new Pawn(pieceAlliance, coordinate));
-						col++;
-						break;
-					case 'B':
-						builder.setPiece(new Bishop(pieceAlliance, coordinate));
-						col++;
-						break;
-					case 'N':
-						builder.setPiece(new Knight(pieceAlliance, coordinate));
-						col++;
-						break;
-					case 'R':
-						builder.setPiece(new Rook(pieceAlliance, coordinate));
-						col++;
-						break;
-					case 'Q':
-						builder.setPiece(new Queen(pieceAlliance, coordinate));
-						col++;
-						break;
-					case 'K':
-						builder.setPiece(new King(pieceAlliance, coordinate));
-						col++;
-						break;
-					default:
-						System.out.println("Switch case for setting pieces in board.java broke");
-						break;
+				case 'P':
+					builder.setPiece(new Pawn(pieceAlliance, coordinate));
+					col++;
+					break;
+				case 'B':
+					builder.setPiece(new Bishop(pieceAlliance, coordinate));
+					col++;
+					break;
+				case 'N':
+					builder.setPiece(new Knight(pieceAlliance, coordinate));
+					col++;
+					break;
+				case 'R':
+					builder.setPiece(new Rook(pieceAlliance, coordinate));
+					col++;
+					break;
+				case 'Q':
+					builder.setPiece(new Queen(pieceAlliance, coordinate));
+					col++;
+					break;
+				case 'K':
+					builder.setPiece(new King(pieceAlliance, coordinate));
+					col++;
+					break;
+				default:
+					System.out.println("The switch case for setting pieces in board.java broke");
+					break;
 				}
 			}
 		}
@@ -212,7 +220,7 @@ public class Board {
 		} else if (fen[1][0] == 'b') {
 			builder.setMoveMaker(Alliance.BLACK);
 		} else {
-			System.out.println("Turn is neither white nor black, somehow");
+			System.out.println("Turn is neither white nor black, somehow (invalid FEN)");
 		}
 
 		return builder.build();
@@ -220,32 +228,40 @@ public class Board {
 
 	public static class Builder {
 
-		Map<Integer, Piece> boardConfig;
-		Alliance nextMoveMaker;
-		Pawn enPassantPawn;
+        Map<Integer, Piece> boardConfig;
+        Alliance nextMoveMaker;
+        Pawn enPassantPawn;
+        Move transitionMove;
 
-		public Builder() {
-			this.boardConfig = new HashMap<>();
-		}
+        public Builder() {
+            this.boardConfig = new HashMap<>(32, 1.0f);
+        }
 
-		public Builder setPiece(final Piece piece) {
-			this.boardConfig.put(piece.getPiecePosition(), piece);
-			return this;
-		}
+        public Builder setPiece(final Piece piece) {
+            this.boardConfig.put(piece.getPiecePosition(), piece);
+            return this;
+        }
 
-		public Builder setMoveMaker(final Alliance nextMoveMaker) {
-			this.nextMoveMaker = nextMoveMaker;
-			return this;
-		}
+        public Builder setMoveMaker(final Alliance nextMoveMaker) {
+            this.nextMoveMaker = nextMoveMaker;
+            return this;
+        }
 
-		public Board build() {
-			return new Board(this);
-		}
+        public Builder setEnPassantPawn(final Pawn enPassantPawn) {
+            this.enPassantPawn = enPassantPawn;
+            return this;
+        }
 
-		public void setEnPassantPawn(Pawn enPassantPawn) {
-			this.enPassantPawn = enPassantPawn;
-		}
-	}
+        public Builder setMoveTransition(final Move transitionMove) {
+            this.transitionMove = transitionMove;
+            return this;
+        }
+
+        public Board build() {
+            return new Board(this);
+        }
+
+    }
 
 	public Player currentPlayer() {
 		return this.currentPlayer;

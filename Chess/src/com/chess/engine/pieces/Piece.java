@@ -1,5 +1,6 @@
 package com.chess.engine.pieces;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import com.chess.engine.Alliance;
@@ -18,8 +19,10 @@ public abstract class Piece {
 		this.piecePosition = piecePosition;
 		this.pieceAlliance = pieceAlliance;
 		this.pieceType = pieceType;
-		// TODO fix this
-		this.isFirstMove = false;
+
+		// TODO: fix this
+		this.isFirstMove = true;
+
 		this.cachedHashCode = computeHashCode();
 	}
 
@@ -34,10 +37,10 @@ public abstract class Piece {
 	@Override
 	public boolean equals(final Object other) {
 		if (this == other) {
-			return true;
+			return true; // when it points to the exact same place in memory
 		}
 		if (!(other instanceof Piece)) {
-			return false;
+			return false; // when it's not even a piece
 		}
 		final Piece otherPiece = (Piece) other;
 		return piecePosition == otherPiece.getPiecePosition() && pieceType == otherPiece.getPieceType()
@@ -66,6 +69,15 @@ public abstract class Piece {
 	}
 
 	public abstract Collection<Move> calculateLegalMoves(final Board board);
+
+	public ArrayList<Integer> calculateLegalSquares(final Board board) {
+		Collection<Move> moves = calculateLegalMoves(board);
+		ArrayList<Integer> squares = new ArrayList<>();
+		for (Move move : moves) {
+			squares.add(move.getDestinationCoordinate());
+		}
+		return squares;
+	}
 
 	public abstract Piece movePiece(Move move); // return a new piece with updated position
 

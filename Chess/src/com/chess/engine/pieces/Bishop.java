@@ -24,42 +24,35 @@ public class Bishop extends Piece {
 	@Override
 	public Collection<Move> calculateLegalMoves(final Board board) {
 		final List<Move> legalMoves = new ArrayList<>();
-
 		for (final int candidateCoordOffset : CANDIDATE_MOVE_VECTOR_COORDS) {
 			int candidateDestinationCoord = this.piecePosition; // checking each of the 4 directions/offsets
-
 			while (BoardUtils.isValidTileCoord(candidateDestinationCoord)) {
-				candidateDestinationCoord += candidateCoordOffset; // sliding
-
-				if (!BoardUtils.isValidTileCoord(candidateDestinationCoord))
-					continue;
-
 				if (isFirstColumnExclusion(candidateDestinationCoord, candidateCoordOffset)
 						|| isEighthColumnExclusion(candidateDestinationCoord, candidateCoordOffset)) {
 					break; // if it's on one of the edges, the rule doesn't apply, so break
 				}
-
+				candidateDestinationCoord += candidateCoordOffset; // sliding
 				if (BoardUtils.isValidTileCoord(candidateDestinationCoord)) {
 					final Tile candidateDestinationTile = board.getTile(candidateDestinationCoord);
-
 					if (!candidateDestinationTile.isOccupied()) {
-						legalMoves.add(new MajorMove(board, this, candidateDestinationCoord)); // non-capture move, keep
-																								// sliding
+						legalMoves.add(new MajorMove(board, this, candidateDestinationCoord)); // non-capture move
 					} else {
 						final Piece pieceAtDestination = candidateDestinationTile.getPiece();
 						final Alliance pieceAlliance = pieceAtDestination.getAlliance();
-
 						if (this.pieceAlliance != pieceAlliance) {
 							legalMoves.add(new AttackMove(board, this, candidateDestinationCoord, pieceAtDestination)); // capture
 						}
 						break;
 					}
 				}
-
 			}
-
 		}
 		return Collections.unmodifiableList(legalMoves);
+	}
+
+	@Override
+	public Bishop movePiece(Move move) {
+		return new Bishop(move.getMovedPiece().getAlliance(), move.getDestinationCoordinate());
 	}
 
 	@Override
@@ -75,9 +68,5 @@ public class Bishop extends Piece {
 		return BoardUtils.EIGHTH_COLUMN[currentPosition] && (candidateOffset == -7 || candidateOffset == 9);
 	}
 
-	@Override
-	public Bishop movePiece(Move move) {
-		return new Bishop(move.getMovedPiece().getAlliance(), move.getDestinationCoordinate());
-	}
 
 }

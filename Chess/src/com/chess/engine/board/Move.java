@@ -67,21 +67,14 @@ public abstract class Move {
 	}
 
 	public Board execute() {
-		final Builder builder = new Builder();
-
-		for (final Piece piece : this.board.currentPlayer().getActivePieces()) {
-			// TODO: hashcode and equals for pieces
-			if (!this.movedPiece.equals(piece)) {
-				builder.setPiece(piece); // set all pieces that didn't move in the same spot
-			}
-		}
-		for (final Piece piece : this.board.currentPlayer().getOpponent().getActivePieces()) {
-			builder.setPiece(piece);
-		}
-		builder.setPiece(this.movedPiece.movePiece(this)); // move the moved piece
-		builder.setMoveMaker(this.board.currentPlayer().getOpponent().getAlliance()); // change the turn
-		return builder.build();
-	}
+        final Board.Builder builder = new Builder();
+        this.board.currentPlayer().getActivePieces().stream().filter(piece -> !this.movedPiece.equals(piece)).forEach(builder::setPiece);
+        this.board.currentPlayer().getOpponent().getActivePieces().forEach(builder::setPiece);
+        builder.setPiece(this.movedPiece.movePiece(this));
+        builder.setMoveMaker(this.board.currentPlayer().getOpponent().getAlliance());
+        builder.setMoveTransition(this);
+        return builder.build();
+    }
 
 	public static final class MajorMove extends Move {
 

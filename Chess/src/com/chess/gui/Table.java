@@ -2,6 +2,7 @@ package com.chess.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -11,13 +12,11 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -28,6 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import com.chess.Utils;
 import com.chess.engine.board.Board;
 import com.chess.engine.board.BoardUtils;
 import com.chess.engine.board.Move;
@@ -47,16 +47,37 @@ public class Table {
 	private Piece humanMovedPiece;
 	private BoardDirection boardDirection;
 
-	private final Color lightTileColor = new Color(235, 235, 208);
-	private final Color darkTileColor = new Color(119, 148, 85);
+	private final Color lightTileColor = new Color(240, 217, 181);
+	private final Color darkTileColor = new Color(181, 136, 99);
 
-	private static String defaultPieceImagesPath = "art/piecespng/";
-	String pieceTheme = "merida/";
-	String fileType = ".png";
+	private final Color highlightColor = new Color(243, 44, 44);
 
-	private static final Dimension OUTER_FRAME_DIMENSION = new Dimension(650, 650);
-	private static final Dimension BOARD_PANEL_DIMENSION = new Dimension(450, 450);
-	private static final Dimension TILE_PANEL_DIMENSION = new Dimension(10, 10);
+	private final Color lightHighlightedTileColor = Utils.mixColors(lightTileColor, highlightColor);
+	private final Color darkHighlightedTileColor = Utils.mixColors(darkTileColor, highlightColor);
+
+	private static String defaultPieceImagesPath = "art/pieces/";
+
+	// cburnett, merida, fresca, staunty, tatiana
+	// for some reason alpha breaks it [the black pawn svg is broken]
+	// magnetic is also broken [haven't checked svg's yet]
+	// pixel has a weird line-break down the middle
+	// sittuyin is also broken [haven't checked svg's yet]
+
+	String[] themes; // fill this array with the themes, use it for the options menu
+
+	float pieceScale = .95f; // each piece is scaled to 95% of its square
+	int squareSideLength;
+	float legalMoveIndicatorScale = .3f; // each dot is scaled to 30% of its square
+	String pieceTheme = "merida/"; // TODO: add a menu item for choosing the theme
+	String fileType = ".svg";
+
+	private static final Dimension OUTER_FRAME_DIMENSION = new Dimension(1143, 1143);
+	private static final Dimension BOARD_PANEL_DIMENSION = new Dimension((int) OUTER_FRAME_DIMENSION.getWidth(),
+			(int) OUTER_FRAME_DIMENSION.getHeight());
+	private static final Dimension TILE_PANEL_DIMENSION = new Dimension((int) OUTER_FRAME_DIMENSION.getWidth() / 8,
+			(int) OUTER_FRAME_DIMENSION.getHeight() / 8);
+
+	// TODO: make it dynamically scale the pieces as you resize the window
 
 	public Table() {
 		this.gameFrame = new JFrame("Chess");
@@ -72,6 +93,7 @@ public class Table {
 		this.boardDirection = BoardDirection.NORMAL;
 		this.gameFrame.add(this.boardPanel, BorderLayout.CENTER);
 		this.gameFrame.setVisible(true);
+		SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
 	}
 
 	private JMenuBar createTableMenuBar() {
@@ -115,7 +137,7 @@ public class Table {
 	}
 
 	private class BoardPanel extends JPanel {
-		final List<TilePanel> boardTiles;
+		private final List<TilePanel> boardTiles;
 
 		BoardPanel() {
 			super(new GridLayout(8, 8));
@@ -145,7 +167,7 @@ public class Table {
 		private final int tileID;
 
 		TilePanel(final BoardPanel boardPanel, final int tileID) {
-			// TODO: make the squares scale correctly (ALWAYS squares)
+			// TODO: make the squares scale correctly (ALWAYS stay squares)
 
 			super(new GridBagLayout());
 			this.tileID = tileID;
@@ -154,64 +176,108 @@ public class Table {
 			assignTilePieceIcon(chessBoard);
 
 			addMouseListener(new MouseListener() {
-				@Override
-				public void mouseClicked(final MouseEvent e) {
 
-					/*
-					 * System.out.println("b:" + chessBoard.blackPlayer().getLegalMoves().size() +
-					 * " w: " + chessBoard.whitePlayer().getLegalMoves().size());
-					 */
+				boolean draggingPiece = false; // TODO: set this to always be correct
 
-					if (SwingUtilities.isRightMouseButton(e)) {
-						// clear on right click
+				public void deselectPiece() {
+					sourceTile = null;
+					destinationTile = null;
+					humanMovedPiece = null;
+				}
+
+				public void selectPiece() {
+					sourceTile = chessBoard.getTile(tileID);
+					humanMovedPiece = sourceTile.getPiece();
+					if (humanMovedPiece == null) {
 						sourceTile = null;
-						destinationTile = null;
-						humanMovedPiece = null;
-					} else if (SwingUtilities.isLeftMouseButton(e)) {
-						// first click
-						if (sourceTile == null || (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID)
-								.getPiece().getAlliance() == chessBoard.currentPlayer().getAlliance())) {
-							sourceTile = chessBoard.getTile(tileID);
-							humanMovedPiece = sourceTile.getPiece();
-							if (humanMovedPiece == null) {
-								sourceTile = null;
-							}
-						} else {
-							// second click
-							destinationTile = chessBoard.getTile(tileID);
-							final Move move = MoveFactory.createMove(chessBoard, sourceTile.getTileCoordinate(),
-									destinationTile.getTileCoordinate());
-							final MoveTransition transition = chessBoard.currentPlayer().makeMove(move);
-							if (transition.getMoveStatus().isDone()) {
-								chessBoard = transition.getTransitionBoard();
-								// TODO: add the move to the move log
-							}
-							sourceTile = null;
-							destinationTile = null;
-							humanMovedPiece = null;
-						}
 					}
+				}
 
-					SwingUtilities.invokeLater(() -> {
-						boardPanel.drawBoard(chessBoard);
-					});
+				public void placePiece() {
+					destinationTile = chessBoard.getTile(tileID);
+					final Move move = MoveFactory.createMove(chessBoard, sourceTile.getTileCoordinate(),
+							destinationTile.getTileCoordinate());
+					final MoveTransition transition = chessBoard.currentPlayer().makeMove(move);
+					if (transition.getMoveStatus().isDone()) {
+						chessBoard = transition.getToBoard();
+						// TODO: add the move to the move log
+					}
+					sourceTile = null;
+					destinationTile = null;
+					humanMovedPiece = null;
+				}
+
+				public boolean isFriendlyOrEmpty() {
+					return (sourceTile == null || (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID)
+							.getPiece().getAlliance() == chessBoard.currentPlayer().getAlliance()));
+				}
+
+				public boolean isFriendly() {
+					return (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID).getPiece()
+							.getAlliance() == chessBoard.currentPlayer().getAlliance());
+				}
+
+				public boolean isEnemy() {
+					return (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID).getPiece()
+							.getAlliance() != chessBoard.currentPlayer().getAlliance());
+				}
+
+				public boolean isEnemyOrEmpty() {
+					return (sourceTile == null || (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID)
+							.getPiece().getAlliance() != chessBoard.currentPlayer().getAlliance()));
 				}
 
 				@Override
 				public void mousePressed(final MouseEvent e) {
-					/* TODO: Add drag and drop functionality */}
+					if (SwingUtilities.isRightMouseButton(e)) {
+						deselectPiece();
+					} else if (SwingUtilities.isLeftMouseButton(e)) {
+						if (isFriendlyOrEmpty()) {
+							selectPiece();
+						} else {
+							placePiece();
+						}
+					}
+					SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
+					// TODO: Add drag and drop functionality
+				}
 
 				@Override
 				public void mouseReleased(final MouseEvent e) {
-					/* TODO: Add drag and drop functionality */}
+					// it only recognizes that you've released it from THIS tile
+					// consequently, you have to send a global boolean for both the mouseReleased
+					// event and isDragging event
+					// if both are met, try placing the piece on the currently hovered tile
+					// TODO: Add drag and drop functionality
+				}
 
 				@Override
 				public void mouseEntered(final MouseEvent e) {
-					/* TODO: Add highlighting during drag and drop */ };
+					if (isFriendly()) {
+						setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // hand cursor
+					}
+
+					if (humanMovedPiece != null && isEnemy()
+							&& humanMovedPiece.calculateLegalSquares(chessBoard).contains(Integer.valueOf(tileID))) {
+						setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // default cursor
+						highlightTile();
+					}
+
+					if (isEnemyOrEmpty()) {
+						// highlightTile();
+					}
+				};
 
 				@Override
 				public void mouseExited(final MouseEvent e) {
-					/* TODO: Add highlighting during drag and drop */ };
+					setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+					// TODO: Add highlighting during drag and drop
+				};
+
+				@Override
+				public void mouseClicked(final MouseEvent e) {
+					// don't need, mousePressed + mouseReleased work better
+				}
 
 			});
 			validate();
@@ -225,36 +291,53 @@ public class Table {
 			repaint();
 		}
 
+		public void highlightTile() {
+			boolean isLight = (((tileID / 8) + tileID) % 2 == 0);
+			setBackground(isLight ? lightHighlightedTileColor : darkHighlightedTileColor);
+		}
+
+		private void assignTileColor() {
+			boolean isLight = (((tileID / 8) + tileID) % 2 == 0);
+			setBackground(isLight ? lightTileColor : darkTileColor);
+		}
+
+		float pieceWidth = (float) (pieceScale * TILE_PANEL_DIMENSION.getHeight());
+		float pieceHeight = (float) (pieceScale * TILE_PANEL_DIMENSION.getWidth());
+
 		private void assignTilePieceIcon(final Board board) {
 			this.removeAll();
 			if (board.getTile(this.tileID).isOccupied()) {
-				try {
-					// TODO: make this not be a blurry mess
-					// TODO: support .svg files
-					// TODO: make pieces scale with the squares
-					final BufferedImage image = ImageIO.read(new File(defaultPieceImagesPath + pieceTheme
-							+ board.getTile(this.tileID).getPiece().getAlliance().toString().substring(0, 1)
-							+ board.getTile(this.tileID).getPiece().toString() + fileType));
-					add(new JLabel(new ImageIcon(image.getScaledInstance(65, 65, java.awt.Image.SCALE_SMOOTH))));
 
-				} catch (IOException e) {
-					e.printStackTrace();
+				if (this.getHeight() != 0 && this.getWidth() != 0) {
+					pieceHeight = this.getHeight() * pieceScale;
+					pieceWidth = this.getWidth() * pieceScale;
 				}
+
+				File pieceFile = new File(defaultPieceImagesPath + pieceTheme
+						+ board.getTile(this.tileID).getPiece().getAlliance().toString().substring(0, 1)
+						+ board.getTile(this.tileID).getPiece().toString() + fileType);
+				final BufferedImage image = Utils.loadImage(pieceFile, pieceWidth, pieceHeight);
+				add(new JLabel(new ImageIcon(image)));
 			}
 
 		}
 
+		float dotWidth = (float) (legalMoveIndicatorScale * OUTER_FRAME_DIMENSION.getHeight() / 8);
+		float dotHeight = (float) (legalMoveIndicatorScale * OUTER_FRAME_DIMENSION.getWidth() / 8);
+
 		private void highlightLegals(final Board board) {
 			if (true /* TODO: add this option in preferences */) {
 				for (final Move move : pieceLegalMoves(board)) {
-					if (move.getDestinationCoordinate() == this.tileID) {
+					if (move.getDestinationCoordinate() == this.tileID && !move.isAttack()) {
 						try {
-							add(new JLabel(new ImageIcon(ImageIO.read(new File("art/misc/dot.png")))));
-							// TODO: make this not look like garbage
-							// TODO: make it not shift the piece in the space to the side
+							File dotFile = new File("art/misc/circle_filled.svg");
+							final BufferedImage image = Utils.loadImage(dotFile, dotWidth, dotHeight);
+							add(new JLabel(new ImageIcon(image))); // TODO: add transparency (or fake it)
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
+					} else if (move.getDestinationCoordinate() == this.tileID && move.isAttack()) {
+						highlightTile();
 					}
 				}
 
@@ -266,11 +349,6 @@ public class Table {
 				return humanMovedPiece.calculateLegalMoves(board);
 			}
 			return Collections.emptyList();
-		}
-
-		private void assignTileColor() {
-			boolean isLight = (((tileID / 8) + tileID) % 2 == 0);
-			setBackground(isLight ? lightTileColor : darkTileColor);
 		}
 	}
 

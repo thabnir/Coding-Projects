@@ -25,6 +25,8 @@ public class BlackPlayer extends Player {
 	protected Collection<Move> calculateKingCastles(final Collection<Move> playerLegals,
 			final Collection<Move> opponentLegals) {
 
+		// TODO: this whole function is broken for now
+
 		final List<Move> kingCastles = new ArrayList<>();
 		if (this.playerKing.isFirstMove() && !this.isInCheck()) {
 			// black's king side castle

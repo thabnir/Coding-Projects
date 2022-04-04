@@ -10,6 +10,9 @@ import com.chess.engine.board.Board;
 import com.chess.engine.board.BoardUtils;
 import com.chess.engine.board.Move;
 import com.chess.engine.board.Move.MajorMove;
+import com.chess.engine.board.Move.PawnAttackMove;
+import com.chess.engine.board.Move.PawnJump;
+import com.chess.engine.board.Move.PawnMove;
 
 public class Pawn extends Piece {
 
@@ -30,24 +33,21 @@ public class Pawn extends Piece {
 			if (!BoardUtils.isValidTileCoord(candidateDestinationCoords)) {
 				continue;
 			}
-			// TODO: make a working first column exclusion, bc it don't be working rn
-			// if (isFirstColumnExclusion(this.piecePosition, candidateDestinationCoords)) {
-			// continue;
-			// }
 
-			if (currentCandidateOffset == 8 && board.getTile(candidateDestinationCoords).isOccupied()) {
+			if (currentCandidateOffset == 8 && !board.getTile(candidateDestinationCoords).isOccupied()) {
+
 				// TODO make this a pawn move from pawn move class, deal with promotions
-				legalMoves.add(new MajorMove(board, this, candidateDestinationCoords)); // non-capture move
-			} else if (currentCandidateOffset == 16 && this.isFirstMove()
-					&& (BoardUtils.SEVENTH_RANK[this.piecePosition] && this.getAlliance().isBlack())
-					|| (BoardUtils.SECOND_RANK[this.piecePosition] && this.getAlliance().isWhite())) {
-				final int behindCandidateDestinationCoord = this.piecePosition
-						+ (this.pieceAlliance.getDirection() * 8);
+				legalMoves.add(new PawnMove(board, this, candidateDestinationCoords)); // non-capture move
 
-				if (!board.getTile(behindCandidateDestinationCoord).isOccupied()
+			} else if (currentCandidateOffset == 16 && this.isFirstMove() // why is isFirstMove() necessary? know this by its position
+					&& ( (BoardUtils.SEVENTH_ROW[this.piecePosition] && this.getAlliance().isBlack())
+					|| (BoardUtils.SECOND_ROW[this.piecePosition] && this.getAlliance().isWhite()) ) ) {
+
+				final int behindCandidateDestinationCoords = this.piecePosition + (this.pieceAlliance.getDirection() * 8);
+				if (!board.getTile(behindCandidateDestinationCoords).isOccupied()
 						&& !board.getTile(candidateDestinationCoords).isOccupied()) {
 					// TODO make this a pawn move from pawn move class
-					legalMoves.add(new MajorMove(board, this, candidateDestinationCoords)); // 2-forward move
+					legalMoves.add(new PawnJump(board, this, candidateDestinationCoords)); // 2-forward move
 				}
 
 			} else if (currentCandidateOffset == 7
@@ -58,7 +58,7 @@ public class Pawn extends Piece {
 					final Piece pieceOnCandidate = board.getTile(candidateDestinationCoords).getPiece();
 					if (this.pieceAlliance != pieceOnCandidate.getAlliance()) {
 						// TODO more to do here
-						legalMoves.add(new MajorMove(board, this, candidateDestinationCoords)); //
+						legalMoves.add(new PawnAttackMove(board, this, candidateDestinationCoords, pieceOnCandidate));
 					}
 				}
 
@@ -70,7 +70,7 @@ public class Pawn extends Piece {
 					final Piece pieceOnCandidate = board.getTile(candidateDestinationCoords).getPiece();
 					if (this.pieceAlliance != pieceOnCandidate.getAlliance()) {
 						// TODO more to do here
-						legalMoves.add(new MajorMove(board, this, candidateDestinationCoords)); //
+						legalMoves.add(new PawnAttackMove(board, this, candidateDestinationCoords, pieceOnCandidate));
 					}
 				}
 
