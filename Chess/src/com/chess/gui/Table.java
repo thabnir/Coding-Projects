@@ -6,8 +6,6 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -38,6 +36,8 @@ import com.chess.engine.player.MoveTransition;
 
 public class Table {
 
+	// TODO: highlight the piece you have selected when it's selected
+
 	private final JFrame gameFrame;
 	private final BoardPanel boardPanel;
 	private Board chessBoard;
@@ -50,14 +50,12 @@ public class Table {
 	private final Color lightTileColor = new Color(240, 217, 181);
 	private final Color darkTileColor = new Color(181, 136, 99);
 
-	private final Color highlightColor = new Color(243, 44, 44);
-
-	private final Color lightHighlightedTileColor = Utils.mixColors(lightTileColor, highlightColor);
-	private final Color darkHighlightedTileColor = Utils.mixColors(darkTileColor, highlightColor);
+	private final Color attackHighlightColor = new Color(243, 44, 44);
+	private final Color currentPieceHighlightColor = new Color(50, 168, 82);
 
 	private static String defaultPieceImagesPath = "art/pieces/";
 
-	// cburnett, merida, fresca, staunty, tatiana
+	// cburnett, merida, fresca, staunty, tatiana, gioco
 	// for some reason alpha breaks it [the black pawn svg is broken]
 	// magnetic is also broken [haven't checked svg's yet]
 	// pixel has a weird line-break down the middle
@@ -68,7 +66,9 @@ public class Table {
 	float pieceScale = .95f; // each piece is scaled to 95% of its square
 	int squareSideLength;
 	float legalMoveIndicatorScale = .3f; // each dot is scaled to 30% of its square
-	String pieceTheme = "merida/"; // TODO: add a menu item for choosing the theme
+
+	// TODO: add a menu item for choosing the theme
+	String pieceTheme = "merida/";
 	String fileType = ".svg";
 
 	private static final Dimension OUTER_FRAME_DIMENSION = new Dimension(1143, 1143);
@@ -106,19 +106,11 @@ public class Table {
 	private JMenu createFileMenu() {
 		final JMenu fileMenu = new JMenu("File");
 		final JMenuItem openPGN = new JMenuItem("Load PGN File");
-		openPGN.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				System.out.println("open the pgn"); // TODO: Fix this
-			}
-		});
+
+		openPGN.addActionListener(e -> System.out.println("this dont work yet")); // TODO: fix this
+
 		final JMenuItem exitMenuItem = new JMenuItem("Exit");
-		exitMenuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
-			}
-		});
+		exitMenuItem.addActionListener(e -> System.exit(0));
 		fileMenu.add(openPGN);
 		fileMenu.add(exitMenuItem);
 		return fileMenu;
@@ -177,8 +169,6 @@ public class Table {
 
 			addMouseListener(new MouseListener() {
 
-				boolean draggingPiece = false; // TODO: set this to always be correct
-
 				public void deselectPiece() {
 					sourceTile = null;
 					destinationTile = null;
@@ -188,8 +178,10 @@ public class Table {
 				public void selectPiece() {
 					sourceTile = chessBoard.getTile(tileID);
 					humanMovedPiece = sourceTile.getPiece();
-					if (humanMovedPiece == null) {
+					if (humanMovedPiece == null
+							|| humanMovedPiece.getAlliance() != chessBoard.currentPlayer().getAlliance()) {
 						sourceTile = null;
+						humanMovedPiece = null;
 					}
 				}
 
@@ -198,18 +190,15 @@ public class Table {
 					final Move move = MoveFactory.createMove(chessBoard, sourceTile.getTileCoordinate(),
 							destinationTile.getTileCoordinate());
 					final MoveTransition transition = chessBoard.currentPlayer().makeMove(move);
+
 					if (transition.getMoveStatus().isDone()) {
 						chessBoard = transition.getToBoard();
 						// TODO: add the move to the move log
 					}
+
 					sourceTile = null;
 					destinationTile = null;
 					humanMovedPiece = null;
-				}
-
-				public boolean isFriendlyOrEmpty() {
-					return (sourceTile == null || (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID)
-							.getPiece().getAlliance() == chessBoard.currentPlayer().getAlliance()));
 				}
 
 				public boolean isFriendly() {
@@ -220,6 +209,11 @@ public class Table {
 				public boolean isEnemy() {
 					return (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID).getPiece()
 							.getAlliance() != chessBoard.currentPlayer().getAlliance());
+				}
+
+				public boolean isFriendlyOrEmpty() {
+					return (sourceTile == null || (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID)
+							.getPiece().getAlliance() == chessBoard.currentPlayer().getAlliance()));
 				}
 
 				public boolean isEnemyOrEmpty() {
@@ -260,19 +254,14 @@ public class Table {
 					if (humanMovedPiece != null && isEnemy()
 							&& humanMovedPiece.calculateLegalSquares(chessBoard).contains(Integer.valueOf(tileID))) {
 						setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // default cursor
-						highlightTile();
 					}
-
-					if (isEnemyOrEmpty()) {
-						// highlightTile();
-					}
-				};
+				}
 
 				@Override
 				public void mouseExited(final MouseEvent e) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 					// TODO: Add highlighting during drag and drop
-				};
+				}
 
 				@Override
 				public void mouseClicked(final MouseEvent e) {
@@ -287,13 +276,16 @@ public class Table {
 			assignTileColor();
 			assignTilePieceIcon(board);
 			highlightLegals(board);
+			highlightSelectedPiece();
 			validate();
 			repaint();
 		}
 
-		public void highlightTile() {
+		public void highlightTile(Color highlightColor) {
+			Color lightHighlightedColor = Utils.mixColors(lightTileColor, highlightColor);
+			Color darkHighlightedColor = Utils.mixColors(darkTileColor, highlightColor);
 			boolean isLight = (((tileID / 8) + tileID) % 2 == 0);
-			setBackground(isLight ? lightHighlightedTileColor : darkHighlightedTileColor);
+			setBackground(isLight ? lightHighlightedColor : darkHighlightedColor);
 		}
 
 		private void assignTileColor() {
@@ -325,19 +317,28 @@ public class Table {
 		float dotWidth = (float) (legalMoveIndicatorScale * OUTER_FRAME_DIMENSION.getHeight() / 8);
 		float dotHeight = (float) (legalMoveIndicatorScale * OUTER_FRAME_DIMENSION.getWidth() / 8);
 
+		private void highlightSelectedPiece() {
+			if (true /* TODO: add toggle in preferences */ && humanMovedPiece != null
+					&& humanMovedPiece.getPiecePosition() == this.tileID) {
+				highlightTile(currentPieceHighlightColor);
+			}
+		}
+
 		private void highlightLegals(final Board board) {
-			if (true /* TODO: add this option in preferences */) {
+			if (true /* TODO: add toggle in preferences */) {
 				for (final Move move : pieceLegalMoves(board)) {
 					if (move.getDestinationCoordinate() == this.tileID && !move.isAttack()) {
 						try {
 							File dotFile = new File("art/misc/circle_filled.svg");
 							final BufferedImage image = Utils.loadImage(dotFile, dotWidth, dotHeight);
-							add(new JLabel(new ImageIcon(image))); // TODO: add transparency (or fake it)
+							add(new JLabel(new ImageIcon(image)));
+							// TODO: add transparency to the dots (or fake it)
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-					} else if (move.getDestinationCoordinate() == this.tileID && move.isAttack()) {
-						highlightTile();
+					} else if (move.getDestinationCoordinate() == this.tileID && move.isAttack()
+							&& true /* TODO: add toggle in preferences */) {
+						highlightTile(attackHighlightColor);
 					}
 				}
 
@@ -367,7 +368,7 @@ public class Table {
 		FLIPPED {
 			@Override
 			List<TilePanel> traverse(final List<TilePanel> boardTiles) {
-				List<TilePanel> reversedCopy = new ArrayList<TilePanel>();
+				List<TilePanel> reversedCopy = new ArrayList<>();
 				reversedCopy.addAll(boardTiles); // clones
 				Collections.reverse(reversedCopy); // reverses
 				return reversedCopy;

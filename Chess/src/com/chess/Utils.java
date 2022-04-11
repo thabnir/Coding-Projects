@@ -6,22 +6,25 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.batik.transcoder.SVGAbstractTranscoder;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.ImageTranscoder;
-import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.commons.io.FileUtils;
 
 public class Utils {
+
+	private Utils() {
+		throw new IllegalStateException("Utility class");
+	}
 
 	public static class BufferedImageTranscoder extends ImageTranscoder {
 		private BufferedImage img = null;
 
 		@Override
 		public BufferedImage createImage(int w, int h) {
-			BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-			return bi;
+			return new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		}
 
 		@Override
@@ -44,8 +47,8 @@ public class Utils {
 		}
 		BufferedImageTranscoder imageTranscoder = new BufferedImageTranscoder();
 
-		imageTranscoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, width);
-		imageTranscoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, height);
+		imageTranscoder.addTranscodingHint(SVGAbstractTranscoder.KEY_WIDTH, width);
+		imageTranscoder.addTranscodingHint(SVGAbstractTranscoder.KEY_HEIGHT, height);
 
 		TranscoderInput input = new TranscoderInput(targetStream);
 		try {
