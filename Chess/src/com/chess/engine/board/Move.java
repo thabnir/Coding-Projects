@@ -67,14 +67,14 @@ public abstract class Move {
 	}
 
 	public Board execute() {
-        final Board.Builder builder = new Builder();
-        this.board.currentPlayer().getActivePieces().stream().filter(piece -> !this.movedPiece.equals(piece)).forEach(builder::setPiece);
-        this.board.currentPlayer().getOpponent().getActivePieces().forEach(builder::setPiece);
-        builder.setPiece(this.movedPiece.movePiece(this));
-        builder.setMoveMaker(this.board.currentPlayer().getOpponent().getAlliance());
-        builder.setMoveTransition(this);
-        return builder.build();
-    }
+		final Board.Builder builder = new Builder();
+		this.board.currentPlayer().getActivePieces().stream().filter(piece -> !this.movedPiece.equals(piece)).forEach(builder::setPiece);
+		this.board.currentPlayer().getOpponent().getActivePieces().forEach(builder::setPiece);
+		builder.setPiece(this.movedPiece.movePiece(this));
+		builder.setMoveMaker(this.board.currentPlayer().getOpponent().getAlliance());
+		builder.setMoveTransition(this);
+		return builder.build();
+	}
 
 	public static final class MajorMove extends Move {
 
@@ -114,11 +114,6 @@ public abstract class Move {
 		@Override
 		public String toString() {
 			return movedPiece.getPieceType().toString();
-		}
-
-		@Override
-		public Board execute() {
-			return null; // TODO: fix
 		}
 
 		@Override

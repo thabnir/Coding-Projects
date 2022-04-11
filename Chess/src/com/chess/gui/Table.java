@@ -71,7 +71,7 @@ public class Table {
 	String pieceTheme = "merida/";
 	String fileType = ".svg";
 
-	private static final Dimension OUTER_FRAME_DIMENSION = new Dimension(1143, 1143);
+	private static final Dimension OUTER_FRAME_DIMENSION = new Dimension(700, 700);
 	private static final Dimension BOARD_PANEL_DIMENSION = new Dimension((int) OUTER_FRAME_DIMENSION.getWidth(),
 			(int) OUTER_FRAME_DIMENSION.getHeight());
 	private static final Dimension TILE_PANEL_DIMENSION = new Dimension((int) OUTER_FRAME_DIMENSION.getWidth() / 8,
