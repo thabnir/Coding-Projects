@@ -57,9 +57,9 @@ public class Table {
 
 	// cburnett, merida, fresca, staunty, tatiana, gioco
 	// for some reason alpha breaks it [the black pawn svg is broken]
-	// magnetic is also broken [haven't checked svg's yet]
+	// magnetic is also broken [the black pawn svg is broken]
 	// pixel has a weird line-break down the middle
-	// sittuyin is also broken [haven't checked svg's yet]
+	// sittuyin is also broken [probably unfixable, weird transcoder issues]
 
 	String[] themes; // fill this array with the themes, use it for the options menu
 
