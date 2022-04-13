@@ -67,10 +67,9 @@ public class Table {
 	private static String frameIcon = "art/misc/chessIcon.png";
 
 	// cburnett, merida, fresca, staunty, tatiana, gioco
-	// for some reason alpha breaks it [the black pawn svg is broken]
-	// magnetic is also broken [the black pawn svg is broken]
-	// pixel has a weird line-break down the middle
-	// sittuyin is also broken [probably unfixable, weird transcoder issues]
+
+	// alpha, magnetic have broken black pawns
+	// pixel has gaps at lower resolutions
 
 	ArrayList<String> pieceThemes = new ArrayList<>(); // TODO: use this for a theme selector
 	File listOfThemes = new File("art/pieceThemes.txt");
