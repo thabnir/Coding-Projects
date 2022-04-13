@@ -6,14 +6,18 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -47,13 +51,20 @@ public class Table {
 	private Piece humanMovedPiece;
 	private BoardDirection boardDirection;
 
+	// TODO: make selectable themes for tile colors
+	// NOTE: The highlight colors need to be customized theme-by-theme
 	private final Color lightTileColor = new Color(240, 217, 181);
 	private final Color darkTileColor = new Color(181, 136, 99);
 
-	private final Color attackHighlightColor = new Color(243, 44, 44);
-	private final Color currentPieceHighlightColor = new Color(50, 168, 82);
+	private final Color attackedPieceHighlightColor = new Color(243, 44, 44); // red
+	private final Color selectedPieceHighlightColor = new Color(97, 224, 85); // green
+	private final float selectedPieceHighlightOpacity = .3f;
+	private final float attackedPieceHighlightOpacity = .35f;
+	private static float pieceScale = .95f; // each piece is scaled to 95% of its square
+	private static float legalMoveIndicatorScale = .3f; // each dot is scaled to 30% of its square
 
 	private static String defaultPieceImagesPath = "art/pieces/";
+	private static String frameIcon = "art/misc/chessIcon.png";
 
 	// cburnett, merida, fresca, staunty, tatiana, gioco
 	// for some reason alpha breaks it [the black pawn svg is broken]
@@ -61,17 +72,11 @@ public class Table {
 	// pixel has a weird line-break down the middle
 	// sittuyin is also broken [probably unfixable, weird transcoder issues]
 
-	String[] themes; // fill this array with the themes, use it for the options menu
+	ArrayList<String> pieceThemes = new ArrayList<>(); // TODO: use this for a theme selector
+	File listOfThemes = new File("art/pieceThemes.txt");
+	private static String pieceTheme = "merida/"; // replace with theme selector
 
-	float pieceScale = .95f; // each piece is scaled to 95% of its square
-	int squareSideLength;
-	float legalMoveIndicatorScale = .3f; // each dot is scaled to 30% of its square
-
-	// TODO: add a menu item for choosing the theme
-	String pieceTheme = "merida/";
-	String fileType = ".svg";
-
-	private static final Dimension OUTER_FRAME_DIMENSION = new Dimension(700, 700);
+	private static final Dimension OUTER_FRAME_DIMENSION = new Dimension(1200, 1200);
 	private static final Dimension BOARD_PANEL_DIMENSION = new Dimension((int) OUTER_FRAME_DIMENSION.getWidth(),
 			(int) OUTER_FRAME_DIMENSION.getHeight());
 	private static final Dimension TILE_PANEL_DIMENSION = new Dimension((int) OUTER_FRAME_DIMENSION.getWidth() / 8,
@@ -80,7 +85,23 @@ public class Table {
 	// TODO: make it dynamically scale the pieces as you resize the window
 
 	public Table() {
+
+		try {
+			Scanner input = null;
+			input = new Scanner(listOfThemes);
+			while (input.hasNextLine()) {
+				pieceThemes.add(input.nextLine());
+			}
+			input.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
 		this.gameFrame = new JFrame("Chess");
+
+		Image icon = Toolkit.getDefaultToolkit().getImage(frameIcon);
+		this.gameFrame.setIconImage(icon);
+
 		this.gameFrame.setLayout(new BorderLayout());
 		final JMenuBar tableMenuBar = createTableMenuBar();
 		this.gameFrame.setJMenuBar(tableMenuBar);
@@ -93,7 +114,7 @@ public class Table {
 		this.boardDirection = BoardDirection.NORMAL;
 		this.gameFrame.add(this.boardPanel, BorderLayout.CENTER);
 		this.gameFrame.setVisible(true);
-		SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
+		SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard)); // resizes pieces
 	}
 
 	private JMenuBar createTableMenuBar() {
@@ -288,6 +309,13 @@ public class Table {
 			setBackground(isLight ? lightHighlightedColor : darkHighlightedColor);
 		}
 
+		public void highlightTile(float primaryRatio, Color highlightColor) {
+			Color lightHighlightedColor = Utils.mixColors(primaryRatio, lightTileColor, highlightColor);
+			Color darkHighlightedColor = Utils.mixColors(primaryRatio, darkTileColor, highlightColor);
+			boolean isLight = (((tileID / 8) + tileID) % 2 == 0);
+			setBackground(isLight ? lightHighlightedColor : darkHighlightedColor);
+		}
+
 		private void assignTileColor() {
 			boolean isLight = (((tileID / 8) + tileID) % 2 == 0);
 			setBackground(isLight ? lightTileColor : darkTileColor);
@@ -307,7 +335,7 @@ public class Table {
 
 				File pieceFile = new File(defaultPieceImagesPath + pieceTheme
 						+ board.getTile(this.tileID).getPiece().getAlliance().toString().substring(0, 1)
-						+ board.getTile(this.tileID).getPiece().toString() + fileType);
+						+ board.getTile(this.tileID).getPiece().toString() + ".svg");
 				final BufferedImage image = Utils.loadImage(pieceFile, pieceWidth, pieceHeight);
 				add(new JLabel(new ImageIcon(image)));
 			}
@@ -320,7 +348,7 @@ public class Table {
 		private void highlightSelectedPiece() {
 			if (true /* TODO: add toggle in preferences */ && humanMovedPiece != null
 					&& humanMovedPiece.getPiecePosition() == this.tileID) {
-				highlightTile(currentPieceHighlightColor);
+				highlightTile(selectedPieceHighlightOpacity, selectedPieceHighlightColor);
 			}
 		}
 
@@ -338,7 +366,7 @@ public class Table {
 						}
 					} else if (move.getDestinationCoordinate() == this.tileID && move.isAttack()
 							&& true /* TODO: add toggle in preferences */) {
-						highlightTile(attackHighlightColor);
+						highlightTile(attackedPieceHighlightOpacity, attackedPieceHighlightColor);
 					}
 				}
 

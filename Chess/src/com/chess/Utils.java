@@ -71,4 +71,18 @@ public class Utils {
 		}
 		return new Color(r, g, b, a);
 	}
+
+	public static Color mixColors(float secondaryRatio, Color primaryColor, Color secondaryColor) {
+		float primaryRatio = 1 - secondaryRatio;
+		int r = 0, g = 0, b = 0, a = 0;
+		r += primaryColor.getRed() * primaryRatio;
+		g += primaryColor.getGreen() * primaryRatio;
+		b += primaryColor.getBlue() * primaryRatio;
+		a += primaryColor.getAlpha() * primaryRatio;
+		r += secondaryColor.getRed() * secondaryRatio;
+		g += secondaryColor.getGreen() * secondaryRatio;
+		b += secondaryColor.getBlue() * secondaryRatio;
+		a += secondaryColor.getAlpha() * secondaryRatio;
+		return new Color(r, g, b, a);
+	}
 }
