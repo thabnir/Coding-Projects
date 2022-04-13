@@ -18,20 +18,15 @@ public abstract class Player {
 	protected final Collection<Move> legalMoves;
 	protected final boolean isInCheck;
 
-	Player(final Board board, Collection<Move> playerLegals, final Collection<Move> opponentLegals) {
+	Player(final Board board, final Collection<Move> playerLegals, final Collection<Move> opponentLegals) {
 		this.board = board;
 		this.playerKing = establishKing();
 		this.isInCheck = !calculateAttacksOnTile(this.playerKing.getPiecePosition(), opponentLegals).isEmpty();
 		
-		// TODO: none of this works
-		/*
-		Collection<Move> moves = calculateKingCastles(playerLegals, opponentLegals);
-		playerLegals.addAll(calculateKingCastles(playerLegals, opponentLegals)); // TODO: this code doesn't work
-		for (final Move move : moves) {
-			//playerLegals.add(move); // TODO: this code doesn't work
-		}
-		*/
-		this.legalMoves = Collections.unmodifiableCollection(playerLegals);
+		Collection<Move> legalCopy = new ArrayList<>();
+		legalCopy.addAll(playerLegals);
+		legalCopy.addAll(calculateKingCastles(playerLegals, opponentLegals));
+		this.legalMoves = Collections.unmodifiableCollection(legalCopy);
 	}
 
 	protected static Collection<Move> calculateAttacksOnTile(int piecePosition, Collection<Move> moves) {
@@ -86,14 +81,20 @@ public abstract class Player {
 	}
 
 	public MoveTransition makeMove(final Move move) {
-        if (!this.legalMoves.contains(move)) {
-            return new MoveTransition(this.board, this.board, move, MoveStatus.ILLEGAL_MOVE);
-        }
-        final Board transitionedBoard = move.execute();
-        return transitionedBoard.currentPlayer().getOpponent().isInCheck() ?
-                new MoveTransition(this.board, this.board, move, MoveStatus.LEAVES_PLAYER_IN_CHECK) :
-                new MoveTransition(this.board, transitionedBoard, move, MoveStatus.DONE);
-    }
+		if (!this.legalMoves.contains(move)) {
+			return new MoveTransition(this.board, this.board, move, MoveStatus.ILLEGAL_MOVE);
+		}
+		final Board transitionedBoard = move.execute();
+		return transitionedBoard.currentPlayer().getOpponent().isInCheck() ?
+				new MoveTransition(this.board, this.board, move, MoveStatus.LEAVES_PLAYER_IN_CHECK) :
+					new MoveTransition(this.board, transitionedBoard, move, MoveStatus.DONE);
+	}
+
+	protected boolean hasCastleOpportunities() {
+		// TODO: the functions this relies on (isInCheck(), isCastled(), etc.) are stubs
+		return !this.isInCheck && !this.playerKing.isCastled() &&
+				(this.playerKing.isKingSideCastleCapable() || this.playerKing.isQueenSideCastleCapable());
+	}
 
 	public King getPlayerKing() {
 		return this.playerKing;

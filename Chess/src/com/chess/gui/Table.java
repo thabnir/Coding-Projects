@@ -6,7 +6,6 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -40,7 +39,7 @@ import com.chess.engine.player.MoveTransition;
 
 public class Table {
 
-	// TODO: highlight the piece you have selected when it's selected
+	// alpha, magnetic have broken black pawns, pixel has gaps at lower resolutions
 
 	private final JFrame gameFrame;
 	private final BoardPanel boardPanel;
@@ -52,36 +51,28 @@ public class Table {
 	private BoardDirection boardDirection;
 
 	// TODO: make selectable themes for tile colors
-	// NOTE: The highlight colors need to be customized theme-by-theme
+	// NOTE: The highlight colors need to be customized theme-by-theme (or it'll look ugly)
 	private final Color lightTileColor = new Color(240, 217, 181);
 	private final Color darkTileColor = new Color(181, 136, 99);
-
 	private final Color attackedPieceHighlightColor = new Color(243, 44, 44); // red
 	private final Color selectedPieceHighlightColor = new Color(97, 224, 85); // green
-	private final float selectedPieceHighlightOpacity = .3f;
-	private final float attackedPieceHighlightOpacity = .35f;
-	private static float pieceScale = .95f; // each piece is scaled to 95% of its square
-	private static float legalMoveIndicatorScale = .3f; // each dot is scaled to 30% of its square
 
-	private static String defaultPieceImagesPath = "art/pieces/";
-	private static String frameIcon = "art/misc/chessIcon.png";
-
-	// cburnett, merida, fresca, staunty, tatiana, gioco
-
-	// alpha, magnetic have broken black pawns
-	// pixel has gaps at lower resolutions
-
-	ArrayList<String> pieceThemes = new ArrayList<>(); // TODO: use this for a theme selector
+	private static final float SELECTED_PIECE_HIGHLIGHT_OPACITY = .3f;
+	private static final float ATTACKED_PIECE_HIGHLIGHT_OPACITY = .35f;
+	private static final float PIECE_SCALE = .95f; // each piece is scaled to 95% of its square
+	private static final float MOVE_INDICATOR_SCALE = .3f; // each dot is scaled to 30% of its square
+	private static final String DEFAULT_PIECE_IMAGE_PATH = "art/pieces/";
+	private static final String FRAME_ICON = "art/misc/twopieceicon.png";
 	File listOfThemes = new File("art/pieceThemes.txt");
-	private static String pieceTheme = "merida/"; // replace with theme selector
+	ArrayList<String> pieceThemes = new ArrayList<>();
+	private static String pieceTheme = "merida"; // default theme
 
-	private static final Dimension OUTER_FRAME_DIMENSION = new Dimension(1200, 1200);
+	// TODO: make it dynamically scale the pieces AS you resize the window (not on click);
+	private static final Dimension OUTER_FRAME_DIMENSION = new Dimension(700, 700);
 	private static final Dimension BOARD_PANEL_DIMENSION = new Dimension((int) OUTER_FRAME_DIMENSION.getWidth(),
 			(int) OUTER_FRAME_DIMENSION.getHeight());
 	private static final Dimension TILE_PANEL_DIMENSION = new Dimension((int) OUTER_FRAME_DIMENSION.getWidth() / 8,
 			(int) OUTER_FRAME_DIMENSION.getHeight() / 8);
-
-	// TODO: make it dynamically scale the pieces as you resize the window
 
 	public Table() {
 
@@ -96,18 +87,16 @@ public class Table {
 			e.printStackTrace();
 		}
 
-		this.gameFrame = new JFrame("Chess");
-
-		Image icon = Toolkit.getDefaultToolkit().getImage(frameIcon);
-		this.gameFrame.setIconImage(icon);
-
+		this.gameFrame = new JFrame("HenryChess");
+		this.gameFrame.setIconImage(Toolkit.getDefaultToolkit().getImage(FRAME_ICON));
 		this.gameFrame.setLayout(new BorderLayout());
 		final JMenuBar tableMenuBar = createTableMenuBar();
 		this.gameFrame.setJMenuBar(tableMenuBar);
 		this.gameFrame.setSize(OUTER_FRAME_DIMENSION);
+
 		this.chessBoard = Board.createStandardBoard();
 		this.gameFrame.setResizable(true);
-		this.gameFrame.setLocationRelativeTo(null); // centers it upon opening
+		this.gameFrame.setLocationRelativeTo(null); // centers on monitor
 		this.gameFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		this.boardPanel = new BoardPanel();
 		this.boardDirection = BoardDirection.NORMAL;
@@ -120,6 +109,7 @@ public class Table {
 		final JMenuBar tableMenuBar = new JMenuBar();
 		tableMenuBar.add(createFileMenu());
 		tableMenuBar.add(createPreferencesMenu());
+		tableMenuBar.add(createThemeMenu());
 		return tableMenuBar;
 	}
 
@@ -146,6 +136,24 @@ public class Table {
 		});
 		preferencesMenu.add(flipBoardMenuItem);
 		return preferencesMenu;
+	}
+
+	private JMenu createThemeMenu() {
+		final JMenu themeMenu = new JMenu("Theme");
+		for (int i = 0; i < pieceThemes.size(); i++) {
+			String label = pieceThemes.get(i).substring(0,1).toUpperCase() + pieceThemes.get(i).substring(1);
+			JMenuItem item = new JMenuItem(label);
+			themeMenu.add(item);
+			themeMenu.getItem(i).addActionListener(e -> {
+				setTheme(item.getText().toLowerCase());
+				SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
+			});
+		}
+		return themeMenu;
+	}
+
+	private static void setTheme(String theme) {
+		pieceTheme = theme;
 	}
 
 	private class BoardPanel extends JPanel {
@@ -213,6 +221,7 @@ public class Table {
 
 					if (transition.getMoveStatus().isDone()) {
 						chessBoard = transition.getToBoard();
+						setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 						// TODO: add the move to the move log
 					}
 
@@ -320,19 +329,19 @@ public class Table {
 			setBackground(isLight ? lightTileColor : darkTileColor);
 		}
 
-		float pieceWidth = (float) (pieceScale * TILE_PANEL_DIMENSION.getHeight());
-		float pieceHeight = (float) (pieceScale * TILE_PANEL_DIMENSION.getWidth());
+		float pieceWidth = (float) (PIECE_SCALE * TILE_PANEL_DIMENSION.getHeight());
+		float pieceHeight = (float) (PIECE_SCALE * TILE_PANEL_DIMENSION.getWidth());
 
 		private void assignTilePieceIcon(final Board board) {
 			this.removeAll();
 			if (board.getTile(this.tileID).isOccupied()) {
 
 				if (this.getHeight() != 0 && this.getWidth() != 0) {
-					pieceHeight = this.getHeight() * pieceScale;
-					pieceWidth = this.getWidth() * pieceScale;
+					pieceHeight = this.getHeight() * PIECE_SCALE;
+					pieceWidth = this.getWidth() * PIECE_SCALE;
 				}
 
-				File pieceFile = new File(defaultPieceImagesPath + pieceTheme
+				File pieceFile = new File(DEFAULT_PIECE_IMAGE_PATH + pieceTheme + "/"
 						+ board.getTile(this.tileID).getPiece().getAlliance().toString().substring(0, 1)
 						+ board.getTile(this.tileID).getPiece().toString() + ".svg");
 				final BufferedImage image = Utils.loadImage(pieceFile, pieceWidth, pieceHeight);
@@ -341,13 +350,13 @@ public class Table {
 
 		}
 
-		float dotWidth = (float) (legalMoveIndicatorScale * OUTER_FRAME_DIMENSION.getHeight() / 8);
-		float dotHeight = (float) (legalMoveIndicatorScale * OUTER_FRAME_DIMENSION.getWidth() / 8);
+		float dotWidth = (float) (MOVE_INDICATOR_SCALE * OUTER_FRAME_DIMENSION.getHeight() / 8);
+		float dotHeight = (float) (MOVE_INDICATOR_SCALE * OUTER_FRAME_DIMENSION.getWidth() / 8);
 
 		private void highlightSelectedPiece() {
 			if (true /* TODO: add toggle in preferences */ && humanMovedPiece != null
 					&& humanMovedPiece.getPiecePosition() == this.tileID) {
-				highlightTile(selectedPieceHighlightOpacity, selectedPieceHighlightColor);
+				highlightTile(SELECTED_PIECE_HIGHLIGHT_OPACITY, selectedPieceHighlightColor);
 			}
 		}
 
@@ -365,7 +374,7 @@ public class Table {
 						}
 					} else if (move.getDestinationCoordinate() == this.tileID && move.isAttack()
 							&& true /* TODO: add toggle in preferences */) {
-						highlightTile(attackedPieceHighlightOpacity, attackedPieceHighlightColor);
+						highlightTile(ATTACKED_PIECE_HIGHLIGHT_OPACITY, attackedPieceHighlightColor);
 					}
 				}
 

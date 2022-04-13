@@ -67,4 +67,19 @@ public class King extends Piece {
 		return new King(move.getMovedPiece().getAlliance(), move.getDestinationCoordinate());
 	}
 
+	public boolean isCastled() {
+		// TODO fix
+		return false;
+	}
+
+	public boolean isKingSideCastleCapable() {
+		// TODO fix
+		return true;
+	}
+
+	public boolean isQueenSideCastleCapable() {
+		// TODO fix
+		return true;
+	}
+
 }

@@ -25,21 +25,22 @@ public class BlackPlayer extends Player {
 	protected Collection<Move> calculateKingCastles(final Collection<Move> playerLegals,
 			final Collection<Move> opponentLegals) {
 
-		// TODO: this whole function is broken for now
+		// TODO : finish castling prerequisites
+
+		if (!hasCastleOpportunities()) {
+			return Collections.emptyList();
+		}
 
 		final List<Move> kingCastles = new ArrayList<>();
 		if (this.playerKing.isFirstMove() && !this.isInCheck()) {
 			// black's king side castle
 			if (!this.board.getTile(5).isOccupied() && !this.board.getTile(6).isOccupied()) {
 				final Tile rookTile = this.board.getTile(7);
-				if (rookTile.isOccupied() && rookTile.getPiece().isFirstMove()) {
-					if (Player.calculateAttacksOnTile(5, opponentLegals).isEmpty()
-							&& Player.calculateAttacksOnTile(6, opponentLegals).isEmpty()
-							&& rookTile.getPiece().getPieceType().isRook()) {
-
-						kingCastles.add(new KingsideCastleMove(this.board, this.playerKing, 6,
-								(Rook) rookTile.getPiece(), rookTile.getTileCoordinate(), 5));
-					}
+				if (rookTile.isOccupied() && rookTile.getPiece().isFirstMove() && Player.calculateAttacksOnTile(5, opponentLegals).isEmpty()
+						&& Player.calculateAttacksOnTile(6, opponentLegals).isEmpty()
+						&& rookTile.getPiece().getPieceType().isRook()) {
+					kingCastles.add(new KingsideCastleMove(this.board, this.playerKing, 6,
+							(Rook) rookTile.getPiece(), rookTile.getTileCoordinate(), 5));
 				}
 			}
 
