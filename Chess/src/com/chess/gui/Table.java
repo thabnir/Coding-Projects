@@ -2,8 +2,10 @@ package com.chess.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -29,6 +32,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import com.chess.Utils;
+import com.chess.engine.Alliance;
 import com.chess.engine.board.Board;
 import com.chess.engine.board.BoardUtils;
 import com.chess.engine.board.Move;
@@ -49,6 +53,10 @@ public class Table {
 	private Tile destinationTile;
 	private Piece humanMovedPiece;
 	private BoardDirection boardDirection;
+	private boolean flipBoardOnTurnChange;
+	private boolean highlightLegalMoves;
+	private boolean highlightCaptures;
+	Font menuFont;
 
 	// TODO: make selectable themes for tile colors
 	// NOTE: The highlight colors need to be customized theme-by-theme (or it'll look ugly)
@@ -68,7 +76,7 @@ public class Table {
 	private static String pieceTheme = "merida"; // default theme
 
 	// TODO: make it dynamically scale the pieces AS you resize the window (not on click);
-	private static final Dimension OUTER_FRAME_DIMENSION = new Dimension(700, 700);
+	private static final Dimension OUTER_FRAME_DIMENSION = new Dimension(1000, 1000);
 	private static final Dimension BOARD_PANEL_DIMENSION = new Dimension((int) OUTER_FRAME_DIMENSION.getWidth(),
 			(int) OUTER_FRAME_DIMENSION.getHeight());
 	private static final Dimension TILE_PANEL_DIMENSION = new Dimension((int) OUTER_FRAME_DIMENSION.getWidth() / 8,
@@ -100,6 +108,11 @@ public class Table {
 		this.gameFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		this.boardPanel = new BoardPanel();
 		this.boardDirection = BoardDirection.NORMAL;
+		this.flipBoardOnTurnChange = false;
+		this.highlightLegalMoves = true;
+		this.highlightCaptures = true;
+		this.menuFont = new Font("segoe ui", Font.PLAIN, 16);
+
 		this.gameFrame.add(this.boardPanel, BorderLayout.CENTER);
 		this.gameFrame.setVisible(true);
 		SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard)); // resizes pieces
@@ -110,7 +123,31 @@ public class Table {
 		tableMenuBar.add(createFileMenu());
 		tableMenuBar.add(createPreferencesMenu());
 		tableMenuBar.add(createThemeMenu());
+
+		tableMenuBar.setBorderPainted(false);
+		tableMenuBar.setBackground(lightTileColor);
+		// tableMenuBar.setFont(menuFont);
+		tableMenuBar.validate();
+
+		Component[] items = tableMenuBar.getComponents();
+
+		for (int i = 0; i < items.length; i++) {
+			JMenu item = (JMenu) tableMenuBar.getComponent(i);
+			applyStyle(item);
+
+			Component[] subMenuItems = item.getComponents();
+			for (int j = 0; j < subMenuItems.length; j++) {
+				JMenuItem menuItem = (JMenuItem) subMenuItems[j];
+				applyStyle(menuItem);
+			}
+		}
+
 		return tableMenuBar;
+	}
+
+	void applyStyle(Component item) {
+		item.setBackground(lightTileColor);
+		item.setFont(menuFont);
 	}
 
 	private JMenu createFileMenu() {
@@ -127,18 +164,46 @@ public class Table {
 	}
 
 	private JMenu createPreferencesMenu() {
-
 		final JMenu preferencesMenu = new JMenu("Preferences");
 		final JMenuItem flipBoardMenuItem = new JMenuItem("Flip Board");
 		flipBoardMenuItem.addActionListener(e -> {
 			boardDirection = boardDirection.opposite();
-			boardPanel.drawBoard(chessBoard);
+			SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
 		});
+		final JMenuItem flipBoardOnTurnChangeMenuItem = new JMenuItem("Active Player on Bottom");
+		flipBoardOnTurnChangeMenuItem.addActionListener(e -> {
+			flipBoardOnTurnChange = !flipBoardOnTurnChange;
+			if (chessBoard.currentPlayer().getAlliance() != boardDirection.getBottomAlliance()) {
+				boardDirection = boardDirection.opposite();
+				SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
+			}
+		});
+		final JCheckBox highlightLegalMovesMenuItem = new JCheckBox("Highlight legal moves", true);
+		highlightLegalMovesMenuItem.addActionListener(e -> {
+			highlightLegalMoves = !highlightLegalMoves;
+			SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
+		});
+		final JCheckBox highlightCapturesMenuItem = new JCheckBox("Highlight captures", true);
+		highlightLegalMovesMenuItem.addActionListener(e -> {
+			highlightCaptures = !highlightCaptures;
+			SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
+		});
+		preferencesMenu.add(highlightLegalMovesMenuItem);
+		preferencesMenu.add(highlightCapturesMenuItem);
 		preferencesMenu.add(flipBoardMenuItem);
+		preferencesMenu.add(flipBoardOnTurnChangeMenuItem);
 		return preferencesMenu;
 	}
 
 	private JMenu createThemeMenu() {
+		// TODO: for some reason, these themes don't center:
+		// cburnett, chessmonk, chess7, freestaunton, horsey, icpieces, kilfiger,
+		// makruk, metaltops
+
+		// all of the others DO center
+		// you can't really tell in a square tile, but it's apparent when they're
+		// rectangles
+
 		final JMenu themeMenu = new JMenu("Theme");
 		for (int i = 0; i < pieceThemes.size(); i++) {
 			String label = pieceThemes.get(i).substring(0,1).toUpperCase() + pieceThemes.get(i).substring(1);
@@ -222,6 +287,10 @@ public class Table {
 					if (transition.getMoveStatus().isDone()) {
 						chessBoard = transition.getToBoard();
 						setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+						if (flipBoardOnTurnChange
+								&& chessBoard.currentPlayer().getAlliance() != boardDirection.getBottomAlliance()) {
+							boardDirection = boardDirection.opposite();
+						}
 						// TODO: add the move to the move log
 					}
 
@@ -361,7 +430,9 @@ public class Table {
 		}
 
 		private void highlightLegals(final Board board) {
-			if (true /* TODO: add toggle in preferences */) {
+			// TODO: add castling, remove moves that would cause a check (illegal)
+
+			if (highlightLegalMoves) {
 				for (final Move move : pieceLegalMoves(board)) {
 					if (move.getDestinationCoordinate() == this.tileID && !move.isAttack()) {
 						try {
@@ -373,7 +444,7 @@ public class Table {
 							e.printStackTrace();
 						}
 					} else if (move.getDestinationCoordinate() == this.tileID && move.isAttack()
-							&& true /* TODO: add toggle in preferences */) {
+							&& highlightCaptures) {
 						highlightTile(ATTACKED_PIECE_HIGHLIGHT_OPACITY, attackedPieceHighlightColor);
 					}
 				}
@@ -400,6 +471,11 @@ public class Table {
 			BoardDirection opposite() {
 				return FLIPPED;
 			}
+
+			@Override
+			Alliance getBottomAlliance() {
+				return Alliance.WHITE;
+			}
 		},
 		FLIPPED {
 			@Override
@@ -414,11 +490,18 @@ public class Table {
 			BoardDirection opposite() {
 				return NORMAL;
 			}
+
+			@Override
+			Alliance getBottomAlliance() {
+				return Alliance.BLACK;
+			}
 		};
 
 		abstract List<TilePanel> traverse(final List<TilePanel> boardTiles);
 
 		abstract BoardDirection opposite();
+
+		abstract Alliance getBottomAlliance();
 
 	}
 
