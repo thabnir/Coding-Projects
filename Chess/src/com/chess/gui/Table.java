@@ -63,7 +63,8 @@ public class Table {
 	// TODO: find out why some SVGs don't center
 	// TODO: make the tiles actually squares, make the board actually square
 	// TODO: remove illegal move indicators
-	// TODO: make it dynamically scale the pieces AS you resize the window (not on click);
+	// TODO: make it dynamically scale the pieces AS you resize the window (not on
+	// click);
 
 	// TODO: make theme menu not suck ass (it's way too big)
 	// could make it scroll, could make it its own type of menu, whatever
@@ -86,7 +87,6 @@ public class Table {
 	private final Color darkTileColor;
 	private final Color attackedTileHighlightColor;
 	private final Color selectedPieceHighlightColor;
-
 
 	private float selectedPieceHighlightOpacity;
 	private float attackedTileHighlightOpacity;
@@ -117,9 +117,7 @@ public class Table {
 	private static final Dimension TILE_PANEL_DIMENSION = new Dimension((int) BOARD_PANEL_DIMENSION.getWidth() / 8,
 			(int) BOARD_PANEL_DIMENSION.getHeight() / 8);
 
-
 	public Table() {
-
 
 		try {
 			String[] keys = userPreferences.keys();
@@ -131,11 +129,10 @@ public class Table {
 		}
 		setPreferences();
 
-
 		this.menuFont = new Font("segoe ui", Font.PLAIN, 16);
 		this.menuFontBold = new Font("segoe ui", Font.BOLD, 16);
 
-		UIManager.put("Menu.font", menuFont);
+		UIManager.put("Menu.font", menuFont); // TODO : make fonts do stuff
 
 		this.lightTileColor = new Color(240, 217, 181);
 		this.darkTileColor = new Color(181, 136, 99);
@@ -250,6 +247,9 @@ public class Table {
 		exitMenuItem.addActionListener(e -> System.exit(0));
 		fileMenu.add(openPGN);
 		fileMenu.add(exitMenuItem);
+
+		applyStyle(openPGN);
+		applyStyle(exitMenuItem);
 		return fileMenu;
 	}
 
@@ -297,7 +297,7 @@ public class Table {
 			SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
 		});
 
-		final JMenuItem resetPreferencesMenuItem = new JMenuItem("Reset Preferences");
+		final JMenuItem resetPreferencesMenuItem = new JMenuItem("Reset");
 		resetPreferencesMenuItem.addActionListener(e -> {
 			resetPreferences();
 			SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
@@ -308,9 +308,15 @@ public class Table {
 		preferencesMenu.add(flipBoardOnTurnChangeMenuItem);
 		preferencesMenu.add(flipBoardMenuItem);
 		preferencesMenu.add(resetPreferencesMenuItem);
+
+		applyStyle(highlightLegalMovesMenuItem);
+		applyStyle(highlightCapturesMenuItem);
+		applyStyle(flipBoardOnTurnChangeMenuItem);
+		applyStyle(flipBoardMenuItem);
+		applyStyle(resetPreferencesMenuItem);
+
 		return preferencesMenu;
 	}
-
 
 	private JMenu createThemeMenu() {
 
@@ -324,9 +330,8 @@ public class Table {
 
 		final JMenu themeMenu = new JMenu("Theme");
 		ButtonGroup radioGroup = new ButtonGroup();
-
 		for (int i = 0; i < pieceThemes.size(); i++) {
-			String label = pieceThemes.get(i).substring(0,1).toUpperCase() + pieceThemes.get(i).substring(1);
+			String label = pieceThemes.get(i).substring(0, 1).toUpperCase() + pieceThemes.get(i).substring(1);
 			JRadioButtonMenuItem item = new JRadioButtonMenuItem(label);
 			radioGroup.add(item);
 			item.setSelected(label.toLowerCase().equals(pieceTheme));
@@ -391,113 +396,109 @@ public class Table {
 			assignTileColor();
 			assignTilePieceIcon(chessBoard);
 
-			addMouseListener(new MouseListener() {
+			// TODO: refactor this garbage (me omw to write a 100 line anonymous class)
+			addMouseListener(
+					new MouseListener() {
 
-				public void deselectPiece() {
-					sourceTile = null;
-					destinationTile = null;
-					humanMovedPiece = null;
-				}
-
-				public void selectPiece() {
-					sourceTile = chessBoard.getTile(tileID);
-					humanMovedPiece = sourceTile.getPiece();
-					if (humanMovedPiece == null
-							|| humanMovedPiece.getAlliance() != chessBoard.currentPlayer().getAlliance()) {
-						sourceTile = null;
-						humanMovedPiece = null;
-					}
-				}
-
-				public void placePiece() {
-					destinationTile = chessBoard.getTile(tileID);
-					final Move move = MoveFactory.createMove(chessBoard, sourceTile.getTileCoordinate(),
-							destinationTile.getTileCoordinate());
-					final MoveTransition transition = chessBoard.currentPlayer().makeMove(move);
-
-					if (transition.getMoveStatus().isDone()) {
-						chessBoard = transition.getToBoard();
-						setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-						if (flipBoardOnTurnChange
-								&& chessBoard.currentPlayer().getAlliance() != boardDirection.getBottomAlliance()) {
-							boardDirection = boardDirection.opposite();
+						public void deselectPiece() {
+							sourceTile = null;
+							destinationTile = null;
+							humanMovedPiece = null;
 						}
-						// TODO: add the move to the move log
-					}
 
-					sourceTile = null;
-					destinationTile = null;
-					humanMovedPiece = null;
-				}
-
-				public boolean isFriendly() {
-					return (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID).getPiece()
-							.getAlliance() == chessBoard.currentPlayer().getAlliance());
-				}
-
-				public boolean isEnemy() {
-					return (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID).getPiece()
-							.getAlliance() != chessBoard.currentPlayer().getAlliance());
-				}
-
-				public boolean isFriendlyOrEmpty() {
-					return (sourceTile == null || (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID)
-							.getPiece().getAlliance() == chessBoard.currentPlayer().getAlliance()));
-				}
-
-				public boolean isEnemyOrEmpty() {
-					return (sourceTile == null || (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID)
-							.getPiece().getAlliance() != chessBoard.currentPlayer().getAlliance()));
-				}
-
-				@Override
-				public void mousePressed(final MouseEvent e) {
-					if (SwingUtilities.isRightMouseButton(e)) {
-						deselectPiece();
-					} else if (SwingUtilities.isLeftMouseButton(e)) {
-						if (isFriendlyOrEmpty()) {
-							selectPiece();
-						} else {
-							placePiece();
+						public void selectPiece() {
+							sourceTile = chessBoard.getTile(tileID);
+							humanMovedPiece = sourceTile.getPiece();
+							if (humanMovedPiece == null
+									|| humanMovedPiece.getAlliance() != chessBoard.currentPlayer().getAlliance()) {
+								sourceTile = null;
+								humanMovedPiece = null;
+							}
 						}
-					}
-					SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
-					// TODO: Add drag and drop functionality
-				}
 
-				@Override
-				public void mouseReleased(final MouseEvent e) {
-					// it only recognizes that you've released it from THIS tile
-					// consequently, you have to send a global boolean for both the mouseReleased
-					// event and isDragging event
-					// if both are met, try placing the piece on the currently hovered tile
-					// TODO: Add drag and drop functionality
-				}
+						public void placePiece() {
+							destinationTile = chessBoard.getTile(tileID);
+							final Move move = MoveFactory.createMove(chessBoard, sourceTile.getTileCoordinate(),
+									destinationTile.getTileCoordinate());
+							final MoveTransition transition = chessBoard.currentPlayer().makeMove(move);
 
-				@Override
-				public void mouseEntered(final MouseEvent e) {
-					if (isFriendly()) {
-						setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // hand cursor
-					}
+							if (transition.getMoveStatus().isDone()) {
+								chessBoard = transition.getToBoard();
+								setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+								if (flipBoardOnTurnChange && chessBoard.currentPlayer().getAlliance() != boardDirection
+										.getBottomAlliance()) {
+									boardDirection = boardDirection.opposite();
+								}
+								// TODO: add the move to the move log
+							}
 
-					if (humanMovedPiece != null && isEnemy()
-							&& humanMovedPiece.calculateLegalSquares(chessBoard).contains(Integer.valueOf(tileID))) {
-						setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // default cursor
-					}
-				}
+							sourceTile = null;
+							destinationTile = null;
+							humanMovedPiece = null;
+						}
 
-				@Override
-				public void mouseExited(final MouseEvent e) {
-					setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-					// TODO: Add highlighting during drag and drop
-				}
+						public boolean isFriendly() {
+							return (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID).getPiece()
+									.getAlliance() == chessBoard.currentPlayer().getAlliance());
+						}
 
-				@Override
-				public void mouseClicked(final MouseEvent e) {
-					// don't need, mousePressed + mouseReleased work better
-				}
+						public boolean isEnemy() {
+							return (chessBoard.getTile(tileID).isOccupied() && chessBoard.getTile(tileID).getPiece()
+									.getAlliance() != chessBoard.currentPlayer().getAlliance());
+						}
 
-			});
+						public boolean isEmpty() {
+							return sourceTile == null;
+						}
+
+						@Override
+						public void mousePressed(final MouseEvent e) {
+							if (SwingUtilities.isRightMouseButton(e)) {
+								deselectPiece();
+							} else if (SwingUtilities.isLeftMouseButton(e)) {
+								if (isEmpty() || isFriendly()) {
+									selectPiece();
+								} else {
+									placePiece();
+								}
+							}
+							SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
+							// TODO: Add drag and drop functionality
+						}
+
+						@Override
+						public void mouseReleased(final MouseEvent e) {
+							// it only recognizes that you've released it from THIS tile
+							// consequently, you have to send a global event for both the mouseReleased
+							// event and isDragging event
+							// if both are met, try placing the piece on the currently hovered tile
+							// TODO: Add drag and drop functionality
+						}
+
+						@Override
+						public void mouseEntered(final MouseEvent e) {
+							if (isFriendly()) {
+								setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // hand cursor
+							}
+
+							if (humanMovedPiece != null && isEnemy() && humanMovedPiece
+									.calculateLegalSquares(chessBoard).contains(Integer.valueOf(tileID))) {
+								setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // default cursor
+							}
+						}
+
+						@Override
+						public void mouseExited(final MouseEvent e) {
+							setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+							// TODO: Add highlighting during drag and drop
+						}
+
+						@Override
+						public void mouseClicked(final MouseEvent e) {
+							// don't need, mousePressed + mouseReleased work better
+						}
+
+					});
 			validate();
 		}
 
@@ -508,13 +509,6 @@ public class Table {
 			highlightSelectedPiece();
 			validate();
 			repaint();
-		}
-
-		public void highlightTile(Color highlightColor) {
-			Color lightHighlightedColor = Utils.mixColors(lightTileColor, highlightColor);
-			Color darkHighlightedColor = Utils.mixColors(darkTileColor, highlightColor);
-			boolean isLight = (((tileID / 8) + tileID) % 2 == 0);
-			setBackground(isLight ? lightHighlightedColor : darkHighlightedColor);
 		}
 
 		public void highlightTile(float primaryRatio, Color highlightColor) {
