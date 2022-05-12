@@ -133,7 +133,7 @@ public class Table {
 
 		this.chessBoard = Board.createStandardBoard();
 
-		this.gameFrame = new JFrame("HChess");
+		this.gameFrame = new JFrame("Henry Chess");
 		this.gameFrame.setIconImage(Toolkit.getDefaultToolkit().getImage(FRAME_ICON));
 		this.gameFrame.setLayout(new BorderLayout());
 		final JMenuBar tableMenuBar = createTableMenuBar();
@@ -305,13 +305,14 @@ public class Table {
 
 	private JMenu createThemeMenu() {
 
-		// TODO: for some reason, these themes don't center:
-		// cburnett, chessmonk, chess7, freestaunton, horsey, icpieces, kilfiger,
-		// makruk, metaltops
+		// TODO: find out how to make it not cover up the whole screen
+		// * maybe make it a different type of element more conducive to big lists
 
+		// TODO: for some reason, these themes don't center:
+		// * cburnett, chessmonk, chess7, freestaunton, horsey, icpieces, kilfiger,
+		// * makruk, metaltops
 		// all of the others DO center
-		// you can't really tell in a square tile, but it's very apparent when they're
-		// rectangles
+		// you can't really tell in a square tile, but it's obvious when rectangular
 
 		final JMenu themeMenu = new JMenu("Theme");
 		ButtonGroup radioGroup = new ButtonGroup();
